@@ -1,0 +1,10 @@
+I fixed an error: protocol 1 was the only protocol, repeated 8 times. I fixed this. 
+Convergence is better, but I believe it is a funciton of the number of points. 
+Rerun by doubling the number of points. 
+
+80 points per cycle, nb_cycles: 3
+Still no mach on lower left corner. 
+I will decrease time span even more and see if I get better results. s
+
+One thought: I could getter results on longer time spans with either ddeper netowkrs or a network with more points per layer.
+This suggests using a Neural ODE instead os layers? Does that even make sense? 

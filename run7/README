@@ -1,0 +1,16 @@
+2023-02-26_13:08
+Set :T = 20 and :saveat=0.2 (similar to run4/ with :Ncycles=3 and :T approx 20), but add a new fully connected hidden layer to the neural network. 
+In rude_impl.jl, the NN is now: 
+
+    model_univ = FastChain(FastDense(dNN[:in_layer], hid, act),
+                        FastDense(hid, hid, act),
+                        FastDense(hid, hid, act),  # a second layer
+                        FastDense(hid, dNN[:out_layer]))
+	dct[:model_univ] = model_univ
+
+Objective: We should see improvement over the results of run4/
+
+Results
+Surprisingly, there is no improvement over the results of run4/
+
+

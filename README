@@ -1,0 +1,69 @@
+Copied code from ../../alex_broken_code_2023-02-17/
+Objective: simplify the code and add comprehensive callbacks to see plot evolution. 
+Remove code after original training (200 iterations per protocol). 
+Figure out why the equations are becoming stiff. 
+
+I am getting the warning error: "            
+# Warning: Reverse-Mode AD VJP choices all failed. Falling back to numerical VJPs
+# If reverse-mode isn't working, just fallback to numerical vjps
+
+I did not get this error in the past. Might this be related to some of the dictionary expressions I implemented? 
+
+2023-02-24_11:41
+Solving Giesekus with zero RHS to check the casue for the warning error related to VJP. 
+  Warning: Reverse-Mode AD VJP choices all failed. Falling back to numerical VJPs (still occured)
+
+2023-02-24_11:47
+Return 6 zeros from dudt_univ! (where tensor basis is computed) to simplify further
+THE ERROR NO LONGER OCCURS. Ok. Now slowly complexify
+
+I reinstated \sigma11, \sigma22, \sigma33, and still no warning error. 
+I reinstated \sigma12 (du[4] = dσ12), no warning error.
+I reinstated \sigma13 (du[5] = dσ13), no warning error. 
+I reinstated \sigma23 (du[6] = dσ23), no warning error.   HOW IS THIS POSSIBLE? 
+
+Remove return (0.,0.,...) from tbnn
+Warning error reappears.
+
+Reinstate reutrn (0.,0.,...) from tbnn
+
+Zeroed out du[4] to du[6] in the return of dudt_univ!. There is warning error. 
+Zeroed out du[1] to du[6] in the return of dudt_univ!. There is warning error.  (tbnn also return 0.) (dudt_giesekus! returns 0.).
+    Warning still appears. 
+
+Commented out   (inside dudt_univ!)
+    #du[1] = dσ11
+    #du[2] = dσ22
+    #du[3] = dσ33
+		Now the function only returns 0. 
+    NO WARNINGS
+
+Reinstsated dudt_giesekus!
+  - No warning
+
+Reinstated tbnn
+   - Warning appears
+
+Returned zeros at the end of tbnn
+   - The warning appears. Why? 
+
+Moved the return [0.,,0.] statement to line 28 of rude_functions.jl after definition of T9_23
+----------------------------------------------------------------------
+2023-02-26_14:53
+The number of points is taken into account in the univ_loss function in rude_impl()
+	for k = range(1,trajectories,step=1)
+		σ12_pred = results[k][4,:]   # result density depends on :saveat
+		σ12_data = σ12_all[k]
+		loss += sum(abs2, σ12_pred - σ12_data)
+	end
+----------------------------------------------------------------------
+2023-02-26_15:00
+Strange phenomena. I am getting the same results independent of network complexity. The time to compute the 
+solution is the same independent of network complexity.  Yet, the yml file appears to have the correct metadata (in terms of the number of network weights for example). 
+Somehow, I am not executing the code I think I am). 
+
+In a whole series of runs, my loss is independent of the network parameters. That is SERIOUSLY INCORRECT!
+----------------------------------------------------------------------
+I am confused again. What is the relationship between Gisekus (model) and the equation we are seeking. In other 
+words, are we expecting agreement? What are the exact solutions to the equations?
+----------------------------------------------------------------------

@@ -1,0 +1,12 @@
+So far, increasing the network capacity is not improving the results. Is that a limitation
+of the tensor-basis expansion? If so, no amount of network capacity increase will improve the results.
+
+Use layers with 5 neurons. That is too low, so the results should not be good at all. I am doing 
+this to demonstrate whether or not the correct network is being executed. At this time, I do not understand why
+the results in run7/ and run8/ are identical, even the though the networks have different layer sizes. 
+
+2023-02-26_16:18
+Single hidden layer with a single point. Relu activation. 
+30 weights in the network. The code runs very fast (5 min). 
+The results are still the same as in run7/
+

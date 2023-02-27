@@ -1,0 +1,24 @@
+omega=20  (so I can see the effect of Nonlinearity (NL))
+Layer: 32 points
+1 hidden layer
+Returned to tanh activation. 
+:T = 12
+:saveat = 0.01 (so I have 1200 points during the simulation time)
+The simulation has now slowed down a lot. 
+
+I hope that I'll get agreement between NN and protocol. 
+
+Lower left plot is taking long time to converge. \omega=20 may be too high. 
+The other components are doing well.
+
+:saveat = 0.02, so there should be 600 points. However, there are far fewer plotted. 
+I should plot out what is going on. 
+----------------------------------------------------------------------
+Convergence is much harder to come by. Not clear it will happen by the time of 1600 iterations. 
+
+For larger omega, as the frequency increase,  one could decrease the time interval :T, and perhaps we'd get better
+agreement with the actual solution. 
+
+Note: What is Giesekus? That is not the correct solution, is it?  I AM CONFUSED. 
+
+Final results are reasonable agreement between Giesekus and the NN model for omega=5.0

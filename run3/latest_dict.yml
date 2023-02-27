@@ -1,0 +1,40 @@
+maxiters: 200
+skip_factor: 100
+ω_protoc:
+  - 1.0
+  - 1.0
+  - 0.5
+  - 0.5
+  - 2.0
+  - 2.0
+  - 0.33333334
+  - 0.33333334
+nb_protocols: 8
+dct_NN:
+  hid_layer: 32
+  out_layer: 9
+  in_layer: 9
+  act: tanh
+  nb_hid_layers: 2
+saveat: 0.083333336
+run: 0
+datetime: 2023-02-25T23:24:44.003
+Ncycles: 3
+start_datetime: 2023-02-25T23:24:44.003
+γ: 0.1
+nb_pts_per_cycle: 80
+T: 20.0
+ω: 1.0
+dct_giesekus:
+  α: 0.8
+  τ: 1.0
+  η0: 1.0
+γ_protoc:
+  - 1.0
+  - 2.0
+  - 1.0
+  - 2.0
+  - 1.0
+  - 2.0
+  - 1.0
+  - 2.0

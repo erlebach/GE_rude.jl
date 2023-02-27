@@ -1,0 +1,4 @@
+Code runs for 1600 iteraitons. 
+Warning error no longer occurs and algorithm is stable. 
+However, lower left-hand solution is not quite converged. Each protocol takes 200 steps. Do not know why. 
+One issue: I am only displaying the solution for 0-12. I computed from 0-75. 

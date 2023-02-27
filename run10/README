@@ -1,0 +1,13 @@
+2023-02-26_16:18
+Single hidden layer with a single point. Relu activation. 
+30 weights in the network. The code runs very fast (5 min). 
+The results are still the same as in run7/
+
+2023-02-26_16:42
+Try the identity activation  function with a single hidden layer with a single node. 
+I am also printing out the weights. 
+
+Somehow I feel the network is being bypassed, although I can not understand how that is possible. 
+
+For omega=0, the neural network has almost no effect. so it can be very simple. 
+For omega=20, the oscillations increase a lot. 

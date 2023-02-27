@@ -1,0 +1,11 @@
+2023-02-26_12:54
+run6/
+Starting from run5/ parameters, change :saveat from 0.2 to 0.1. 
+The total time is still 12. 
+Objective: check on whether accuracy is affected by the number of saved points. 
+Answer: the accuracy does not seem to be affected (eyeball norm, which is not the best approach)
+
+In the future (run7/ and beyond), I will also increase the total time to 24, and increase the complexity of
+the network in two ways: 
+	1. increase the layer size from 32 to 64
+	2. Leave the layer size at 32, but add an additional layer. 
