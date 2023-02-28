@@ -220,7 +220,7 @@ end
 
 function loss_univ(θ,protocols,tspans,σ0,σ12_all,trajectories, dct)
     loss = 0
-	println("===> loss_univ: trajectories: $trajectories")
+	println("loss_univ: trajectories: $trajectories")
     results = ensemble_solve(θ, EnsembleThreads(), protocols, tspans, σ0, trajectories, dct)
     for k = range(1,trajectories,step=1)
         σ12_pred = results[k][4,:]
@@ -263,34 +263,25 @@ function plot_data!(plots, targetk, target_titlek, sol_ude_pre, sol_ude_post, so
     # When the blue line is not there, it is because the red and blue lines are superimposed. This means that the converged
     # state is near the initial state. This might happen where you run only a few epochs of the neural network. 
 
-	println("nb time points: ", sol_ude_post.t |> length)
-	println("sol_giesekus time points: ", sol_giesekus.t |> length)
-
-	mss = 1.25
-
     if targetk == "σ12"
         plot!(sol_ude_post.t, σ12_ude_post, c=:red, lw=1.5, label="UDE-post") 
         plot!(sol_ude_pre.t, σ12_ude_pre, c=:blue, ls=:dash, lw=3, title="σ12, v21=$target_titlek", label="UDE-pre") 
-        scatter!(sol_giesekus.t[1:2:end], σ12_data[1:2:end], c=:black, m=:o, ms=mss, label="Giesekus") 
-		plot_σ12 = plot!(sol_giesekus.t[1:2:end], σ12_data[1:2:end], lw=0.5, c=:black)
+        plot_σ12 = scatter!(sol_giesekus.t[1:2:end], σ12_data[1:2:end], c=:black, m=:o, ms=2, label="Giesekus") 
         push!(plots, plot_σ12)
     elseif targetk == "N1"
         plot!(sol_ude_post.t, N1_ude_post, c=:red, lw=1.5, label="UDE-post") 
         plot!(sol_ude_pre.t, N1_ude_pre, c=:blue, ls=:dash, lw=3, title="N1, v21=$target_titlek", label="UDE-pre")  
-        scatter!(sol_giesekus.t[1:2:end], N1_data[1:2:end], m=:o, ms=mss, c=:black, label="Giesekus")
-		plot_N1 = plot!(sol_giesekus.t[1:2:end], N1_data[1:2:end], lw=0.5, c=:black)
+        plot_N1 = scatter!(sol_giesekus.t[1:2:end], N1_data[1:2:end], m=:o, ms=2, c=:black, label="Giesekus")
         push!(plots, plot_N1)
     elseif targetk == "N2"
         plot!(sol_ude_post.t, N2_ude_post, c=:red, lw=1.5, label="UDE-post") 
         plot!(sol_ude_pre.t, N2_ude_pre, c=:blue, lw=3, title="N2, v21=$target_titlek", ls=:dash, label="UDE-pre")
-		scatter!(sol_giesekus.t[1:2:end], N2_data[1:2:end], m=:o, ms=mss, c=:black, label="Giesekus")
-		plot_N2 = plot!(sol_giesekus.t[1:2:end], N2_data[1:2:end], lw=0.5, c=:black) 
+        plot_N2 = scatter!(sol_giesekus.t[1:2:end], N2_data[1:2:end], m=:o, ms=2, c=:black, label="Giesekus") 
         push!(plots, plot_N2)
     elseif targetk == "ηE"
         plot!(sol_ude_post.t, -N2_ude_post-N1_ude_post, lw=1.5, c=:red, label="UDE-post") 
         plot!(sol_ude_pre.t, -N2_ude_pre-N1_ude_pre, lw=3, c=:blue, title="ηE=-N1-N2, v21=$target_titlek", ls=:dash, label="UDE-pre") 
-        scatter!(sol_giesekus.t, -N2_data-N1_data, c=:black, m=:o, ms=mss, label="Giesekus") 
-		plot_N2N1 = plot!(sol_giesekus.t, -N2_data-N1_data, lw=0.5, c=:black)
+        plot_N2N1 = scatter!(sol_giesekus.t, -N2_data-N1_data, c=:black, m=:o, ms=2, label="Giesekus") 
         push!(plots, plot_N2N1)
     end  
     return plots, halt

@@ -9,6 +9,7 @@ using Zygote
 using Plots
 using DataFrames, CSV, YAML
 using BSON: @save, @load
+using NPZ
 using Dates
 
 # Need a global function
@@ -32,11 +33,16 @@ function setup_dict_production()
 
     # Create a Dictionary with all parameters
     dct = Dict()
+	dct[:tdnn_coefs] = tdnn_coefs
     # Set to lower number to run faster and perhaps get less accurate results
     dct[:maxiters] = 200 # 200  # 200 was number in original code
     # Set to 10 once the program works. More cycles, more oscillations
+	dct[:captureG] = false  # capture coefficients of Tensor Basis
+	dct[:start_at] = 1  # do all protocols (if 1). Read weights from save weights if start_at > 1
     dct[:Ncycles] = 3
-    dct[:nb_pts_per_cycle] = 80  # Perhaps increase this will increase accuracy? 
+    dct[:nb_pts_per_cycle] = 40  # Perhaps increase this will increase accuracy? 
+	dct[:T] = 12  # reset in execution loop below (which calls single_run(dct))
+	dct[:saveat] = 0.2  # reset in execution loop below (which calls single_run(dct))
     dct[:nb_protocols] = 8  # set to 1 to run faster. Set to 8 for more accurate results
     dct[:skip_factor] = 100  # callback every skip_factor
     dct[:dct_giesekus] = Dict()
@@ -53,7 +59,7 @@ function setup_dict_production()
     dNN[:nb_hid_layers] = 1
     dNN[:in_layer] = 9
     dNN[:out_layer] = 9
-	dNN[:hid_layer] = 32 # (TOO LOW) # 64 # nb points in th elayer
+	dNN[:hid_layer] = 32 # 32 # (TOO LOW) # 64 # nb points in th elayer
     dNN[:act] = tanh
     #dNN[:act] = relu
     #dNN[:act] = identity
@@ -63,22 +69,22 @@ end
 
 function setup_dict_testing()
     dct, dct_params = setup_dict_production()
-    dct_params[:ω0] = [.1f0]
-    dct_params[:γ0] = [.1f0] # not used
-    dct[:maxiters] = 200
+    dct_params[:ω0] = [1f0]
+    dct_params[:γ0] = [1f0] # not used
+    dct[:maxiters] = 10
     dct[:nb_protocols] = 1
     dct[:skip_factor] = 1
     dNN = dct[:dct_NN]
     dNN[:nb_hid_layers] = 1
     dNN[:in_layer] = 9
     dNN[:out_layer] = 9
-    dNN[:hid_layer] = 32 # nb points in th elayer
+    dNN[:hid_layer] = 1 # nb points in th elayer
     dNN[:act] = tanh
     return dct, dct_params
 end
 
 # ============== END DICTIONARY DEFINITIONS ==================
-production = true  # set to false when testing the code, for faster calculations
+production = false  # set to false when testing the code, for faster calculations
 
 # ============== START of SCRIPT PROPER ==================
 
@@ -140,5 +146,15 @@ end
 
 # Write all dictionaries to a file in YAML format (look it up)
 # This file should be saved, together with jl files, plot files, to a folder, for safekeeping
+# Cannot save in the form of dct[:xxx]
+println("typeof dct[:tdnn_coefs]: ", typeof(dct[:tdnn_coefs]))
+println("len dct[:tdnn_coefs]: ", length(dct[:tdnn_coefs]))
+tdnncoefs = reduce(hcat, dct[:tdnn_coefs])
+println("size(tdnncoefs): ", size(tdnncoefs))
+@save "tdnn_coefs.bson" tdnncoefs
+@save "losses.bson" losses=dct[:losses]
+NPZ.npzwrite("tdnn_coefs.npz", tdnncoefs)
+pop!(dct, :losses) # remove key from dictionary
+pop!(dct, :tdnn_coefs)
 YAML.write_file("dicts.yml", dicts)
 

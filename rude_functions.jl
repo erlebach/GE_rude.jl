@@ -1,10 +1,19 @@
 # The functions in this file do not access a global dictionary. 
 # Ideally, they should not access global variables (for portability). I am not sure that is the case. 
 
+# Make constant for efficiency because it is a global variable, accessible from anywhere. 
+# If this function becomes a module, I can access the coefs
+
+const tdnn_coefs = []
+
+# to reset the tdnn_coefs without decouplilng from dct[:tdnn_coefs], use
+#   empty!(tdnn_coefs). 
+# Note that tdnn_coefs = empty(tdnn_coefs) will not empty the dictionary element. 
+
 function dudt_giesekus!(du, u, p, t, gradv)
     # Destructure the parameters
     η0 = p[1]
-    τ = p[2]
+    τ = p[2]  # \lambda
     α = p[3]
 
     # Governing equations are for components of the stress tensor
@@ -13,18 +22,25 @@ function dudt_giesekus!(du, u, p, t, gradv)
     # Specify the velocity gradient tensor
     # ∇v  ∂vᵢ / ∂xⱼ v12: partial derivative of the 1st component 
     # of v(x1, x2, x3) with respect to the 3rd component of x
-    v11,v12,v13,v21,v22,v23,v31,v32,v33 = gradv    
+	v11,v12,v13,v21,v22,v23,v31,v32,v33 = gradv      # only v21 is non-zero for Alex
 
     # Compute the rate-of-strain (symmetric) and vorticity (antisymmetric) tensors
-    γd11 = 2*v11(t)
-    γd22 = 2*v22(t)
+    γd11 = 2*v11(t)  
+    γd22 = 2*v22(t) 
     γd33 = 2*v33(t)
-    γd12 = v12(t) + v21(t)
+    γd12 = v12(t) + v21(t)  # = v21
     γd13 = v13(t) + v31(t)
     γd23 = v23(t) + v32(t)
-    ω12 = v12(t) - v21(t)
-    ω13 = v13(t) - v31(t)
+    ω12 = v12(t) - v21(t)  # = -v21
+    ω13 = v13(t) - v31(t)  
     ω23 = v23(t) - v32(t)
+
+	# from models/models_impl.jl
+	# coef = α / (λ * G)   # I find that η0 = λ G (Correct or not?) 
+    # du[1] = -σ11 / λ - coef * (σ11^2 + σ12^2) + 2. * γ̇ * σ12 
+    # du[2] = -σ22 / λ - coef * (σ22^2 + σ12^2)
+    # du[3] = -σ33 / λ - coef * σ33^2
+    # du[4] = -σ12 / λ - coef * ((σ11 + σ22) * σ12) + γ̇ * σ22 + G * γ̇
 
     # Define F for the Giesekus model
     F11 = -τ*(σ11*γd11 + σ12*γd12 + σ13*γd13) + (α*τ/η0)*(σ11^2 + σ12^2 + σ13^2)
@@ -48,8 +64,9 @@ function dudt_giesekus!(du, u, p, t, gradv)
     ##
 end
 
-function tbnn(σ, γd, model_weights, model_univ)
+function tbnn(σ, γd, model_weights, model_univ, t)
     # Tensor basis neural network (TBNN)
+	# 2023-02-27: Added t to the argument list ot allow me to capture (g1->g9,t) 
     # Unpack the inputs
     σ11,σ22,σ33,σ12,σ13,σ23 = σ
     γd11,γd22,γd33,γd12,γd13,γd23 = γd
@@ -139,6 +156,16 @@ function tbnn(σ, γd, model_weights, model_univ)
 	# and the solution did not change from its initial value. This must imply that the nonlinearity
 	# has very little effect. 
     #g1,g2,g3,g4,g5,g6,g7,g8,g9 = 0., 0., 0., 0., 0., 0., 0., 0., 0.
+	
+	# Save g1 through g9 per epoch. Once trained 
+	#println("g1->g9:  $t, $g1, $g2, $g3, $g4, $g5, $g6, $g7, $g8, $g9")
+	
+	if dct[:captureG]
+		#println("g1: $g1, $(typeof(g1))")
+		#println("g2: $g2, $(typeof(g2))")
+		coef = [t, g1,g2,g3,g4,g5,g6,g7,g8,g9]
+		push!(tdnn_coefs, coef)
+	end
     
     # Tensor combining layer
     F11 = g1 + g2*σ11 + g3*γd11 + g4*T4_11 + g5*T5_11 + g6*T6_11 + g7*T7_11 + g8*T8_11 + g9*T9_11
@@ -174,7 +201,7 @@ function dudt_univ!(du, u, p, t, gradv, dct)
 
     # Run stress/strain through a TBNN
     γd = [γd11,γd22,γd33,γd12,γd13,γd23]
-	F11,F22,F33,F12,F13,F23 = tbnn(u,γd,model_weights, dct[:model_univ])
+	F11,F22,F33,F12,F13,F23 = tbnn(u,γd,model_weights, dct[:model_univ], t)
 
     # The model differential equations
     dσ11 = η0*γd11/τ - σ11/τ + 2*v11(t)*σ11 + v21(t)*σ12 + v31(t)*σ13 + σ12*v21(t) + σ13*v31(t) - F11/τ
@@ -232,7 +259,7 @@ function loss_univ(θ,protocols,tspans,σ0,σ12_all,trajectories, dct)
 end
 
 
-function plot_data!(plots, targetk, target_titlek, sol_ude_pre, sol_ude_post, sol_giesekus)
+function plot_data!(plots, targetk, target_titlek, sol_ude_pre, sol_ude_post, sol_giesekus, tspan)
     # For each protocol (target), we compute σ12, N1, and N2 from the UDE and Giesekus solutions
 
     # Prediction with initial NN weights
@@ -258,7 +285,7 @@ function plot_data!(plots, targetk, target_titlek, sol_ude_pre, sol_ude_post, so
     end
 
     # Plot the data
-	plot(xlabel="Time", xlims=(0, dct[:T]), titlefontsize=10, legendfontsize=6, legend=:topright)
+	plot(xlabel="Time", xlims=tspan, titlefontsize=10, legendfontsize=6, legend=:topright)
     #@show targetk
     # When the blue line is not there, it is because the red and blue lines are superimposed. This means that the converged
     # state is near the initial state. This might happen where you run only a few epochs of the neural network. 
@@ -273,6 +300,10 @@ function plot_data!(plots, targetk, target_titlek, sol_ude_pre, sol_ude_post, so
         plot!(sol_ude_pre.t, σ12_ude_pre, c=:blue, ls=:dash, lw=3, title="σ12, v21=$target_titlek", label="UDE-pre") 
         scatter!(sol_giesekus.t[1:2:end], σ12_data[1:2:end], c=:black, m=:o, ms=mss, label="Giesekus") 
 		plot_σ12 = plot!(sol_giesekus.t[1:2:end], σ12_data[1:2:end], lw=0.5, c=:black)
+		@show maximum(sol_ude_post.t)
+		@show maximum(sol_giesekus.t)
+		@show sol_giesekus.t[1:2:10]
+		@show sol_giesekus.t[end-10:2:end]
         push!(plots, plot_σ12)
     elseif targetk == "N1"
         plot!(sol_ude_post.t, N1_ude_post, c=:red, lw=1.5, label="UDE-post") 

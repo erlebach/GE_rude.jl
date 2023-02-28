@@ -53,7 +53,6 @@ function ODE_G!(du, u, p, t, gamma_dot)
 end # module
 
 
-
 function calculate_and_plot(u0, Δt, tspan)
     dct = Dict(
         :λ => model_G.λ,

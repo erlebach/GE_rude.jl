@@ -67,3 +67,9 @@ In a whole series of runs, my loss is independent of the network parameters. Tha
 I am confused again. What is the relationship between Gisekus (model) and the equation we are seeking. In other 
 words, are we expecting agreement? What are the exact solutions to the equations?
 ----------------------------------------------------------------------
+2023-02-27
+I derived that \eta_0 = \lambda * G
+\eta_0 is used in rude.jl
+\lambda, G are used in Sachin's derivations. 
+----------------------------------------------------------------------
+

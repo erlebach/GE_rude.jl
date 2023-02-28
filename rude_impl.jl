@@ -37,7 +37,7 @@ function plot_callback(θ, l, θ0, σ0, p_giesekus, step; dct)
 	dct[:nb_iter_optim] = nb_iter
     
     if nb_iter % step == 0
-        plots, halt = plot_solution(θ0, θ, p_giesekus, tspan, σ0, p_giesekus; dct)
+        plots, halt = plot_solution(θ0, θ, p_giesekus, σ0, p_giesekus; dct)
         callback_plot = plot(plots..., plot_title="iteration $nb_iter, $(now())") 
 		display(callback_plot)
         fig_file_name = "callback_plot_$nb_iter.pdf"
@@ -139,17 +139,14 @@ function single_run(dct)
 	#--------------------------------------
     
     # The protocol at which we'll start continuation training
-    # (choose start_at > length(protocols) to skip training)
-    start_at = 9
-    
-    # Retrain the network from scratch
-    start_at = 1
+	# (choose start_at > length(protocols) to skip training) (start_at > 1)
+	# Retrain the network from scratch (start_at = 1)
+	start_at = dct[:start_at]
     
     if start_at > 1
         # Load the pre-trained model if not starting from scratch
 		println("Load a pre-trained model")
-		println("Loading a pre-trained network is temporarily disabled")
-        #@load "tbnn.bson" θi
+        @load "tbnn.bson" θi
         p_model = θi
         n_weights = length(θi)
     else
@@ -173,8 +170,7 @@ function single_run(dct)
     θi = p_model
     
     # Rewrite above section to use Optimizer rather than sciml_train
-    iter = 0
-    θi = zeros(size(p_model))
+    iter = 0  # SHOULD BE the last iteration run previously
     out_files = []
 
     # ISSUE: Initial loss is around 70. WHY? 
@@ -203,14 +199,15 @@ function single_run(dct)
 										   allow_f_increases=true, maxiters=dct[:maxiters])
 		# final network parameters
         θi = parameter_res.u
-        #push!(out_files, "tbnn_k=" * string(k))
-        #@save out_files[end] θi
+        push!(out_files, "tbnn_k=" * string(k))
+        @save "tbnn.bson" θi  # last weights computed
+        @save out_files[end] θi
     end
     
     # Build full parameter vectors for model testing
     #θ0 = [θ0; p_system]  # create single column vector
     #θi = [θi; p_system]
-    plots, halt = plot_solution(θ0, θi, p_system, tspan, σ0, p_giesekus; dct)
+    plots, halt = plot_solution(θ0, θi, p_system, σ0, p_giesekus; dct)
 	final_plot = plot(plots..., plot_title="Last training step, $(now())")
     display(final_plot)
     return final_plot 

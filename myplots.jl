@@ -1,5 +1,5 @@
 
-function plot_solution(θ0, θi, p_system, tspan, σ0, p_giesekus; dct)
+function plot_solution(θ0, θi, p_system, σ0, p_giesekus; dct)
     println("plot_solution: ", dct|>keys)
     # Define the simple shear deformation protocol
     v11(t) = 0
@@ -16,7 +16,7 @@ function plot_solution(θ0, θi, p_system, tspan, σ0, p_giesekus; dct)
 
     θ0 = [θ0; p_system]  # create single column vector
     θi = [θi; p_system]
-	@show θ0, θi
+	#@show θ0, θi
     ω = dct[:ω]
     γ = dct[:γ]
     
@@ -32,7 +32,10 @@ function plot_solution(θ0, θi, p_system, tspan, σ0, p_giesekus; dct)
     protocols = [gradv_1, gradv_2, gradv_3, gradv_4]
     target = ["σ12","N1","N2","σ12"]
     target_titles = ["2cos(3ωt/4)", "2cos(ωt)", "2cos(ωt)", "1.5"]
-	tspan = (0.0f0, dct[:T])
+
+	#tspan = (0.0f0, dct[:T])
+	tspan = (0.0f0, 2.f0 * dct[:T])  # test extrapolation
+	#println("plot_solution: tspan: ", tspan)
     
     plots = []
     halt = false
@@ -50,9 +53,12 @@ function plot_solution(θ0, θi, p_system, tspan, σ0, p_giesekus; dct)
         
         # Solve the UDE post-training (use parameters θi)
         prob_univ_post = ODEProblem(dudt_ude!, σ0, tspan, θi)
+		dct[:captureG] = true  # capture output of NN
 		sol_ude_post = solve(prob_univ_post, abstol = 1e-7, reltol = 1e-6, saveat=dct[:saveat])
+		#println("k: $k, tdnn_coefs: $(dct[:tdnn_coefs])")
+		dct[:captureG] = false
 
-        plot_data!(plots, target[k], target_titles[k], sol_ude_pre, sol_ude_post, sol_giesekus)
+        plot_data!(plots, target[k], target_titles[k], sol_ude_pre, sol_ude_post, sol_giesekus, tspan)
     end
 
     return plots, halt
