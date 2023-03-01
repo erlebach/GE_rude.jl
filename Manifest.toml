@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "32038fc968b297dae5d0036083447e1554d1553f"
+project_hash = "5489e61af6ce4d82da19dff624ac7b737187e242"
 
 [[deps.AbstractAlgebra]]
 deps = ["GroupsCore", "InteractiveUtils", "LinearAlgebra", "MacroTools", "Markdown", "Random", "RandomExtensions", "SparseArrays", "Test"]
@@ -2063,6 +2063,12 @@ deps = ["InteractiveUtils"]
 git-tree-sha1 = "7cdbe45f0018b7f681a6b63ad1250ee6f2297a87"
 uuid = "781d530d-4396-4725-bb49-402e4bee1e77"
 version = "1.0.0"
+
+[[deps.Tullio]]
+deps = ["ChainRulesCore", "DiffRules", "LinearAlgebra", "Requires"]
+git-tree-sha1 = "7871a39eac745697ee512a87eeff06a048a7905b"
+uuid = "bc48ee85-29a4-5162-ae0b-a64e1601d4bc"
+version = "0.3.5"
 
 [[deps.TupleTools]]
 git-tree-sha1 = "3c712976c47707ff893cf6ba4354aa14db1d8938"

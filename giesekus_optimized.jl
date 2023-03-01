@@ -1,94 +1,84 @@
 using DifferentialEquations
+using StaticArrays
+using InteractiveUtils
 
+function tst()
+	a = transpose(SA[1,2,3])
+	b = SA[1, 2, 3]
+	return a*b
+end
 
-function dudt_giesekus!(du, u, p, t, gradv)
+function dudt_giesekus(u, p, t, gradv)
     # Destructure the parameters
     η0 = p[1]
-    τ = p[2]  # \lambda
-    α = p[3]
+    τ  = p[2]  
+    α  = p[3]
+
+	# Solving 3x3 system  (as opposed to 6x1 system previously)
 
     # Governing equations are for components of the stress tensor
-    σ11,σ22,σ33,σ12,σ13,σ23 = u
+    #σ11,σ22,σ33,σ12,σ13,σ23 = u
+	σ = SA_F32[u[1] u[4] 0.; u[4] 0. 0.; 0. 0. u[3]]
 
     # Specify the velocity gradient tensor
     # ∇v  ∂vᵢ / ∂xⱼ v12: partial derivative of the 1st component 
     # of v(x1, x2, x3) with respect to the 3rd component of x
-	v11,v12,v13,v21,v22,v23,v31,v32,v33 = gradv      # only v21 is non-zero for Alex
+	#v11,v12,v13,v21,v22,v23,v31,v32,v33 = gradv      # only v21 is non-zero for Alex
 
-    # Compute the rate-of-strain (symmetric) and vorticity (antisymmetric) tensors
-    γd11 = 2*v11(t)  
-    γd22 = 2*v22(t) 
-    γd33 = 2*v33(t)
-    γd12 = v12(t) + v21(t)  # = v21
-    γd13 = v13(t) + v31(t)
-    γd23 = v23(t) + v32(t)
-    ω12 = v12(t) - v21(t)  # = -v21
-    ω13 = v13(t) - v31(t)  
-    ω23 = v23(t) - v32(t)
+    # Rate-of-strain (symmetric) and vorticity (antisymmetric) tensors
+	#∇v = SA_F32[gradv[1](t)  gradv[2](t)  gradv[3](t); gradv[4](t)  gradv[5](t)  gradv[6](t); gradv[7](t)  gradv[8](t)  gradv[9](t)]
+	∇v = SA_F32[0. 0. 0. ; gradv[4](t) 0. 0. ; 0. 0. 0.]
+	D = 0.5 .* (∇v .+ transpose(∇v))
 
-    # Define F for the Giesekus model
-    F11 = -τ*(σ11*γd11 + σ12*γd12 + σ13*γd13) + (α*τ/η0)*(σ11^2 + σ12^2 + σ13^2)
-    F22 = -τ*(σ12*γd12 + σ22*γd22 + σ23*γd23) + (α*τ/η0)*(σ12^2 + σ22^2 + σ23^2)
-    F33 = -τ*(σ13*γd13 + σ23*γd23 + σ33*γd33) + (α*τ/η0)*(σ13^2 + σ23^2 + σ33^2)
-    F12 = (-τ*(σ11*γd12 + σ12*γd22 + σ13*γd23 + γd11*σ12 + γd12*σ22 + γd13*σ23)/2
-    + (α*τ/η0)*(σ11*σ12 + σ12*σ22 + σ13*σ23))
-    F13 = (-τ*(σ11*γd13 + σ12*γd23 + σ13*γd33 + γd11*σ13 + γd12*σ23 + γd13*σ33)/2
-    + (α*τ/η0)*(σ11*σ13 + σ12*σ23 + σ13*σ33))
-    F23 = (-τ*(σ12*γd13 + σ22*γd23 + σ23*γd33 + γd12*σ13 + γd22*σ23 + γd23*σ33)/2
-    + (α*τ/η0)*(σ12*σ13 + σ22*σ23 + σ23*σ33))
+	T1 = (η0/τ) .* D 
+	T2 = (transpose(∇v) * σ) + (σ * ∇v)
 
-    ##
+	coef = α / (τ * η0)
+	F = coef * (σ * σ)
+
     # The model differential equations
 	# Why is memory allocated? Must be the RHS. Redo this with ModelingToolkit. 
-	# Limit to four equations for further speed (perhaps not)
-    du[1] = η0*γd11/τ - σ11/τ - (ω12*σ12 + ω13*σ13) - F11/τ
-    du[2] = η0*γd22/τ - σ22/τ - (ω23*σ23 - ω12*σ12) - F22/τ
-    du[3] = η0*γd33/τ - σ33/τ + (ω13*σ13 + ω23*σ23) - F33/τ
-    du[4] = η0*γd12/τ - σ12/τ - (ω12*σ22 + ω13*σ23 - σ11*ω12 + σ13*ω23)/2 - F12/τ
-    du[5] = η0*γd13/τ - σ13/τ - (ω12*σ23 + ω13*σ33 - σ11*ω13 - σ12*ω23)/2 - F13/τ
-    du[6] = η0*γd23/τ - σ23/τ - (ω23*σ33 - ω12*σ13 - σ12*ω13 - σ22*ω23)/2 - F23/τ
-	nothing
-    ##
+	du = -σ/τ .+ T1 .+ T2  .- F .+ T2  # 9 equations (static matrix)
+	# du is 3x3 symmetric matrix. Howver, the speed is 2x previous implementation, and easier to read. 
 end
 
-v11(t) = 0
-v12(t) = 0
-v13(t) = 0
-v22(t) = 0
-v23(t) = 0
-v31(t) = 0
-v32(t) = 0
-v33(t) = 0
+const v11(t) = 0
+const v12(t) = 0
+const v13(t) = 0
+const v22(t) = 0
+const v23(t) = 0
+const v31(t) = 0
+const v32(t) = 0
+const v33(t) = 0
 
-p = [1., 1., 1.]
+p = SA[1., 1., 1.]
 
 const dct = Dict()
 dct[:γ_protoc] = convert(Vector{Float32}, [1, 2, 1, 2, 1, 2, 1, 2])
 dct[:ω_protoc] = convert(Vector{Float32}, [1, 1, 0.5, 0.5, 2., 2., 1/3., 1/3.])
 
 # Iniitial conditions and time span
-const v21_protoc = [ (t) -> dct[:γ_protoc][i]*cos(dct[:ω_protoc][i]*t) for i in 1:8]
-const gradv = [v11,v12,v13,  v21_protoc[1], v22,v23,v31,v32,v33] 
+#const v21_protoc = [ (t) -> dct[:γ_protoc][i]*cos(dct[:ω_protoc][i]*t) for i in 1:8]
+const v21_protoc = (t) -> dct[:γ_protoc][i]*cos(dct[:ω_protoc][i]*t)
+const gradv = [v11,v12,v13,  v21_protoc, v22,v23,v31,v32,v33] 
 
-const du = [0., 0., 0., 0., 0., 0.]
-const u = [0., 0., 0., 0., 0., 0.]
-
-@time dudt_giesekus!(du, u, p, 0., gradv)
-@time dudt_giesekus!(du, u, p, 0., gradv)
-@time dudt_giesekus!(du, u, p, 0., gradv)
-@time dudt_giesekus!(du, u, p, 0., gradv)
-@time dudt_giesekus!(du, u, p, 0., gradv)
-
+du = [0.  0.  0.; 0.  0.  0.; 0.  0.  0.]
+u = SA[0.  0.  0.; 0.  0.  0.; 0.  0.  0.]
+σ0 = SA[0.  0.  0.; 0.  0.  0.; 0.  0.  0.]
 tspan = (0., 5.)
-const σ0 = [0., 0., 0., 0., 0., 0.]
 
-dudt!(du,u,p,t) = dudt_giesekus!(du,u,p,t,gradv)
-prob_giesekus = ODEProblem(dudt!, σ0, tspan, p)
-@time sol_giesekus = solve(prob_giesekus,Tsit5())
-@time sol_giesekus = solve(prob_giesekus,Tsit5())
-@time sol_giesekus = solve(prob_giesekus,Tsit5())
+const t = 0.
 
-dct[:saveat] = 0.0005
-@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
-@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
-@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
+println("dudt_giesekus")
+dudt_giesekus(u, p, t, gradv)
+
+### @time dudt_giesekus(u, p, t, gradv)
+### @time dudt_giesekus(u, p, t, gradv)
+### 
+### 
+### dudt(u,p,t) = dudt_giesekus(u,p,t,gradv)
+### prob_giesekus = ODEProblem(dudt, σ0, tspan, p)
+### @time sol_giesekus = solve(prob_giesekus,Tsit5())
+### @time sol_giesekus = solve(prob_giesekus,Tsit5())
+### @time sol_giesekus = solve(prob_giesekus,Tsit5())
+### 

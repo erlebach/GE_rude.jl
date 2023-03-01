@@ -75,20 +75,28 @@ const u = [0., 0., 0., 0., 0., 0.]
 
 @time dudt_giesekus!(du, u, p, 0., gradv)
 @time dudt_giesekus!(du, u, p, 0., gradv)
-@time dudt_giesekus!(du, u, p, 0., gradv)
-@time dudt_giesekus!(du, u, p, 0., gradv)
-@time dudt_giesekus!(du, u, p, 0., gradv)
-
+#@time dudt_giesekus!(du, u, p, 0., gradv)
+#@time dudt_giesekus!(du, u, p, 0., gradv)
+#@time dudt_giesekus!(du, u, p, 0., gradv)
+#@time dudt_giesekus!(du, u, p, 0., gradv)
+#
 tspan = (0., 5.)
 const σ0 = [0., 0., 0., 0., 0., 0.]
-
+#
 dudt!(du,u,p,t) = dudt_giesekus!(du,u,p,t,gradv)
 prob_giesekus = ODEProblem(dudt!, σ0, tspan, p)
+println("saveat=None, tspan=(0,5)")
 @time sol_giesekus = solve(prob_giesekus,Tsit5())
 @time sol_giesekus = solve(prob_giesekus,Tsit5())
 @time sol_giesekus = solve(prob_giesekus,Tsit5())
-
-dct[:saveat] = 0.0005
-@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
-@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
-@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
+println("saveat=0.2, tspan=(0,5)")
+@time sol_giesekus = solve(prob_giesekus,Tsit5(), saveat=0.2)
+@time sol_giesekus = solve(prob_giesekus,Tsit5(), saveat=0.2)
+println("saveat=0.02, tspan=(0,5)")
+@time sol_giesekus = solve(prob_giesekus,Tsit5(), saveat=0.02)
+@time sol_giesekus = solve(prob_giesekus,Tsit5(), saveat=0.02)
+#
+#dct[:saveat] = 0.0005
+#@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
+#@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
+#@time sol_giesekus = solve(prob_giesekus,Tsit5(),saveat=dct[:saveat])
