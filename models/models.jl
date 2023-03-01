@@ -4,12 +4,12 @@
 using DifferentialEquations
 using Plots
 include("models_impl.jl")
-λ = 0.1
+λ = 1.
 G = 1.0
 ω = 1.
 γ₀ = 20.
 ϵ = 0.1   # Set to zero, and the solution of PTT matches UCM
-α = 0.1 # Set to zero, and the solution of G matches UCM
+α = 0.8 # Set to zero, and the solution of G matches UCM
 model_UCM =  Model(λ, G, γ₀, ω, ϵ, α)
 model_PTT =  Model(λ, G, γ₀, ω, ϵ, α)
 model_G   =  Model(λ, G, γ₀, ω, ϵ, α)

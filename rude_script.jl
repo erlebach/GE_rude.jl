@@ -3,6 +3,9 @@ using Revise
 # Use a module to avoid namespace pollution
 # The objective is to run a series of experiments with different parameters
 
+
+#enable tracking of Garbage Collection
+
 using DiffEqFlux, Flux, Optim, DifferentialEquations, LinearAlgebra, OrdinaryDiffEq, DelimitedFiles
 using Optimization, OptimizationOptimisers, OptimizationOptimJL
 using Zygote
@@ -11,34 +14,47 @@ using DataFrames, CSV, YAML
 using BSON: @save, @load
 using NPZ
 using Dates
+#using Profile   # #profiling speed
 
 # Need a global function
 include("./rude_functions.jl")
 include("./myplots.jl")
 include("./rude_impl.jl")
+println("after includes: ", now())
+
 
 # There are 8 protocols for each value of ω0 and γ0. So if you have 4 pairs (ω0, γ0), 
 # you will have 8 protocols for each pair. (That is not what Sachin's problem proposes). 
 # So perhaps one has to generalize how the protocols are stored in the main program to run 
 # a wider variety of tests. Ask questions, Alex. 
 
-println("after includes: ", now())
+# set to false when testing the code, for faster calculations
+production = false
+
+# Collect diagnostic information. 
+# All global data should be consts for efficiency
+const tdnn_coefs = []
+const tdnn_traces = []
+const tdnn_Fs = []
+
 
 function setup_dict_production()
     dct_params = Dict()
     dct_params[:ω0] = [100.f0]
-    dct_params[:ω0] = [5f0]
+    dct_params[:ω0] = [1f0]
     dct_params[:γ0] = [1f0] # not used
 
 
     # Create a Dictionary with all parameters
     dct = Dict()
-	dct[:tdnn_coefs] = tdnn_coefs
+
     # Set to lower number to run faster and perhaps get less accurate results
     dct[:maxiters] = 200 # 200  # 200 was number in original code
     # Set to 10 once the program works. More cycles, more oscillations
 	dct[:captureG] = false  # capture coefficients of Tensor Basis
-	dct[:start_at] = 1  # do all protocols (if 1). Read weights from save weights if start_at > 1
+    dct[:final_plot] = false # if true, output tensor basis data each time plot_solution is called. 
+                             #  if false, only output tensor basis data the last time plot_solution is called. 
+	dct[:start_at] = 8  # do all protocols (if 1). Read weights from save weights if start_at > 1
     dct[:Ncycles] = 3
     dct[:nb_pts_per_cycle] = 40  # Perhaps increase this will increase accuracy? 
 	dct[:T] = 12  # reset in execution loop below (which calls single_run(dct))
@@ -59,11 +75,16 @@ function setup_dict_production()
     dNN[:nb_hid_layers] = 1
     dNN[:in_layer] = 9
     dNN[:out_layer] = 9
-	dNN[:hid_layer] = 32 # 32 # (TOO LOW) # 64 # nb points in th elayer
+	dNN[:hid_layer] = 8 # 32 # (TOO LOW) # 64 # nb points in th elayer
     dNN[:act] = tanh
     #dNN[:act] = relu
     #dNN[:act] = identity
+
+	# Capture data from modeling with NN
 	dct[:losses] = []    # Accumulate losses
+	dct[:tdnn_coefs]  = tdnn_coefs    # Collect tensor basis coefficients
+	dct[:tdnn_traces] = tdnn_traces   # Collect tensor basis traces
+	dct[:tdnn_Fs] = tdnn_Fs   # Collect tensor basis traces
     return dct, dct_params
 end
 
@@ -71,9 +92,10 @@ function setup_dict_testing()
     dct, dct_params = setup_dict_production()
     dct_params[:ω0] = [1f0]
     dct_params[:γ0] = [1f0] # not used
-    dct[:maxiters] = 10
+	dct[:start_at] = 1
+    dct[:maxiters] = 16
     dct[:nb_protocols] = 1
-    dct[:skip_factor] = 1
+    dct[:skip_factor] = 5
     dNN = dct[:dct_NN]
     dNN[:nb_hid_layers] = 1
     dNN[:in_layer] = 9
@@ -84,12 +106,11 @@ function setup_dict_testing()
 end
 
 # ============== END DICTIONARY DEFINITIONS ==================
-production = false  # set to false when testing the code, for faster calculations
 
 # ============== START of SCRIPT PROPER ==================
 
 if production == true
-    # Production: parameters set to generate converged solutions
+	# Production: parameters set to generate converged solutions
     dct, dct_params = setup_dict_production()
 else 
     # testing: # Parameters set for code to run fast for testing. Results not important. 
@@ -103,13 +124,13 @@ end
 
 # Not a good idea to let global variables lying around
 # Write dictionary to a database
-dicts = []
+const dicts = []
 run = 0
 
 println(".... Start parameter loop ...., now: ", now())
 for o in dct_params[:ω0]
     for g in dct_params[:γ0]
-        global run += 0
+        global run += 1
         println("..... run = $(run)")
 		dct[:start_datetime] = now()
 		dct[:end_datetime] = "Simulation not ended" 
@@ -123,7 +144,7 @@ for o in dct_params[:ω0]
 		dct[:saveat] = dct[:T] / dct[:nb_pts_per_cycle] / dct[:Ncycles] |> Float32 # where to save the solution
 
 		dct[:T] = 12.f0  #
-		dct[:saveat] = 0.02 #  (1200 points over a timespan of 12)
+		dct[:saveat] = 0.20 #  (1200 points over a timespan of 12) (less memory allocations with larger increment?
 
 		# Trick to make sure that saveat is always a submultiple of the time span. Not used. 
         # dct[:saveat] = (saveat=saveat[2:end-1], save_start=true, save_end=true)
@@ -134,7 +155,10 @@ for o in dct_params[:ω0]
 
 		YAML.write_file("latest_dict_run$run.yml", dct)
 		println("before single_run, now: ", now())
+
+		print("time for single_run ***************************")
         figure = single_run(dct)
+
         # deepcopy will make sure that the results is different than dct
         # Without it, the dictionaries saved in the list will all be the same
 		dct[:end_datetime] = now() # to measure computational time
@@ -145,16 +169,20 @@ for o in dct_params[:ω0]
 end
 
 # Write all dictionaries to a file in YAML format (look it up)
-# This file should be saved, together with jl files, plot files, to a folder, for safekeeping
+# This file should beesaved, together with jl files, plot files, to a folder, for safekeeping
 # Cannot save in the form of dct[:xxx]
-println("typeof dct[:tdnn_coefs]: ", typeof(dct[:tdnn_coefs]))
-println("len dct[:tdnn_coefs]: ", length(dct[:tdnn_coefs]))
 tdnncoefs = reduce(hcat, dct[:tdnn_coefs])
-println("size(tdnncoefs): ", size(tdnncoefs))
-@save "tdnn_coefs.bson" tdnncoefs
+tdnntraces = reduce(hcat, dct[:tdnn_traces])
+tdnnFs = reduce(hcat, dct[:tdnn_Fs])
+println("size(tdnncoees): ", size(tdnncoefs))
+@save "tdnn_coefs.bson" tdnncoefs  # save data to a file for analysis
 @save "losses.bson" losses=dct[:losses]
-NPZ.npzwrite("tdnn_coefs.npz", tdnncoefs)
+# NPZ.npzwrite("tdnn_coefs.npz", tdnncoefs)
+# NPZ.npzwrite("tdnn_traces.npz", tdnntraces)
+# NPZ.npzwrite("tdnn_Fs.npz", tdnnFs)
 pop!(dct, :losses) # remove key from dictionary
 pop!(dct, :tdnn_coefs)
+pop!(dct, :tdnn_traces)
+pop!(dct, :tdnn_Fs)
 YAML.write_file("dicts.yml", dicts)
 

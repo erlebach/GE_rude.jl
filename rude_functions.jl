@@ -4,8 +4,6 @@
 # Make constant for efficiency because it is a global variable, accessible from anywhere. 
 # If this function becomes a module, I can access the coefs
 
-const tdnn_coefs = []
-
 # to reset the tdnn_coefs without decouplilng from dct[:tdnn_coefs], use
 #   empty!(tdnn_coefs). 
 # Note that tdnn_coefs = empty(tdnn_coefs) will not empty the dictionary element. 
@@ -55,15 +53,19 @@ function dudt_giesekus!(du, u, p, t, gradv)
 
     ##
     # The model differential equations
+	# Why is memory allocated? Must be the RHS. Redo this with ModelingToolkit. 
+	# Limit to four equations for further speed (perhaps not)
     du[1] = η0*γd11/τ - σ11/τ - (ω12*σ12 + ω13*σ13) - F11/τ
     du[2] = η0*γd22/τ - σ22/τ - (ω23*σ23 - ω12*σ12) - F22/τ
     du[3] = η0*γd33/τ - σ33/τ + (ω13*σ13 + ω23*σ23) - F33/τ
     du[4] = η0*γd12/τ - σ12/τ - (ω12*σ22 + ω13*σ23 - σ11*ω12 + σ13*ω23)/2 - F12/τ
     du[5] = η0*γd13/τ - σ13/τ - (ω12*σ23 + ω13*σ33 - σ11*ω13 - σ12*ω23)/2 - F13/τ
     du[6] = η0*γd23/τ - σ23/τ - (ω23*σ33 - ω12*σ13 - σ12*ω13 - σ22*ω23)/2 - F23/τ
+	nothing
     ##
 end
 
+# change to tbnn!, add a first argument of preallocated T
 function tbnn(σ, γd, model_weights, model_univ, t)
     # Tensor basis neural network (TBNN)
 	# 2023-02-27: Added t to the argument list ot allow me to capture (g1->g9,t) 
@@ -82,6 +84,7 @@ function tbnn(σ, γd, model_weights, model_univ, t)
     T4_23 = σ12*σ13 + σ22*σ23 + σ23*σ33
 
     # T5 = γd⋅γd
+	# Why are memory allocations zero? 
     T5_11 = γd11^2 + γd12^2 + γd13^2
     T5_22 = γd12^2 + γd22^2 + γd23^2
     T5_33 = γd13^2 + γd23^2 + γd33^2
@@ -160,13 +163,6 @@ function tbnn(σ, γd, model_weights, model_univ, t)
 	# Save g1 through g9 per epoch. Once trained 
 	#println("g1->g9:  $t, $g1, $g2, $g3, $g4, $g5, $g6, $g7, $g8, $g9")
 	
-	if dct[:captureG]
-		#println("g1: $g1, $(typeof(g1))")
-		#println("g2: $g2, $(typeof(g2))")
-		coef = [t, g1,g2,g3,g4,g5,g6,g7,g8,g9]
-		push!(tdnn_coefs, coef)
-	end
-    
     # Tensor combining layer
     F11 = g1 + g2*σ11 + g3*γd11 + g4*T4_11 + g5*T5_11 + g6*T6_11 + g7*T7_11 + g8*T8_11 + g9*T9_11
     F22 = g1 + g2*σ22 + g3*γd22 + g4*T4_22 + g5*T5_22 + g6*T6_22 + g7*T7_22 + g8*T8_22 + g9*T9_22
@@ -174,6 +170,15 @@ function tbnn(σ, γd, model_weights, model_univ, t)
     F12 = g2*σ12 + g3*γd12 + g4*T4_12 + g5*T5_12 + g6*T6_12 + g7*T7_12 + g8*T8_12 + g9*T9_12
     F13 = g2*σ13 + g3*γd13 + g4*T4_13 + g5*T5_13 + g6*T6_13 + g7*T7_13 + g8*T8_13 + g9*T9_13
     F23 = g2*σ23 + g3*γd23 + g4*T4_23 + g5*T5_23 + g6*T6_23 + g7*T7_23 + g8*T8_23 + g9*T9_23
+    
+	if dct[:captureG]
+		coef = [t, g1,g2,g3,g4,g5,g6,g7,g8,g9]
+		push!(tdnn_coefs, coef)
+		trace = [t, λ1, λ2, λ3, λ4, λ5, λ6, λ7, λ8, λ9]
+		push!(tdnn_traces, trace)
+		F = [t, F11, F22, F33, F12, F13, F23]
+		push!(tdnn_Fs, F)
+	end
 
     return F11,F22,F33,F12,F13,F23  # REINSTATE WHEN DEBUGGED
 end
@@ -218,6 +223,7 @@ function dudt_univ!(du, u, p, t, gradv, dct)
     du[4] = dσ12
     du[5] = dσ13
     du[6] = dσ23
+	nothing
 end
 
 function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, dct)
@@ -295,9 +301,9 @@ function plot_data!(plots, targetk, target_titlek, sol_ude_pre, sol_ude_post, so
 
 	mss = 1.25
 
-    if targetk == "σ12"
+	if startswith(targetk, "σ12")
         plot!(sol_ude_post.t, σ12_ude_post, c=:red, lw=1.5, label="UDE-post") 
-        plot!(sol_ude_pre.t, σ12_ude_pre, c=:blue, ls=:dash, lw=3, title="σ12, v21=$target_titlek", label="UDE-pre") 
+        plot!(sol_ude_pre.t, σ12_ude_pre, c=:blue, ls=:dash, lw=3, title="$targetk, v21=$target_titlek", label="UDE-pre") 
         scatter!(sol_giesekus.t[1:2:end], σ12_data[1:2:end], c=:black, m=:o, ms=mss, label="Giesekus") 
 		plot_σ12 = plot!(sol_giesekus.t[1:2:end], σ12_data[1:2:end], lw=0.5, c=:black)
 		@show maximum(sol_ude_post.t)
@@ -307,13 +313,13 @@ function plot_data!(plots, targetk, target_titlek, sol_ude_pre, sol_ude_post, so
         push!(plots, plot_σ12)
     elseif targetk == "N1"
         plot!(sol_ude_post.t, N1_ude_post, c=:red, lw=1.5, label="UDE-post") 
-        plot!(sol_ude_pre.t, N1_ude_pre, c=:blue, ls=:dash, lw=3, title="N1, v21=$target_titlek", label="UDE-pre")  
+        plot!(sol_ude_pre.t, N1_ude_pre, c=:blue, ls=:dash, lw=3, title="$targetk, v21=$target_titlek", label="UDE-pre")  
         scatter!(sol_giesekus.t[1:2:end], N1_data[1:2:end], m=:o, ms=mss, c=:black, label="Giesekus")
 		plot_N1 = plot!(sol_giesekus.t[1:2:end], N1_data[1:2:end], lw=0.5, c=:black)
         push!(plots, plot_N1)
     elseif targetk == "N2"
         plot!(sol_ude_post.t, N2_ude_post, c=:red, lw=1.5, label="UDE-post") 
-        plot!(sol_ude_pre.t, N2_ude_pre, c=:blue, lw=3, title="N2, v21=$target_titlek", ls=:dash, label="UDE-pre")
+        plot!(sol_ude_pre.t, N2_ude_pre, c=:blue, lw=3, title="$targetk, v21=$target_titlek", ls=:dash, label="UDE-pre")
 		scatter!(sol_giesekus.t[1:2:end], N2_data[1:2:end], m=:o, ms=mss, c=:black, label="Giesekus")
 		plot_N2 = plot!(sol_giesekus.t[1:2:end], N2_data[1:2:end], lw=0.5, c=:black) 
         push!(plots, plot_N2)
@@ -324,6 +330,7 @@ function plot_data!(plots, targetk, target_titlek, sol_ude_pre, sol_ude_post, so
 		plot_N2N1 = plot!(sol_giesekus.t, -N2_data-N1_data, lw=0.5, c=:black)
         push!(plots, plot_N2N1)
     end  
+	println("plot_data!, len(plots): ", length(plots)) # should be 4, the number of protocols, targets
     return plots, halt
 end
 

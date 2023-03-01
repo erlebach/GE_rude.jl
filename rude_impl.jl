@@ -87,6 +87,7 @@ function single_run(dct)
     v21_8(t) = γs[8] * γ * cos(ωs[8] *ω * t)
 
     # Generate one function for each protocol
+	println("*** setup v21_protocol ***")
     v21_protoc = [ (t) -> dct[:γ_protoc][i]*cos(dct[:ω_protoc][i]*t) for i in 1:8]
 
     # GE: How are v11, etc computed? All others are set to zero. 
@@ -200,13 +201,16 @@ function single_run(dct)
 		# final network parameters
         θi = parameter_res.u
         push!(out_files, "tbnn_k=" * string(k))
-        @save "tbnn.bson" θi  # last weights computed
+		@save "tbnn.bson" θi  # last weights computed (save after every target)
         @save out_files[end] θi
     end
     
     # Build full parameter vectors for model testing
     #θ0 = [θ0; p_system]  # create single column vector
     #θi = [θi; p_system]
+	
+	# Capture final output related to tensorflow basis
+    dct[:final_plot] = true
     plots, halt = plot_solution(θ0, θi, p_system, σ0, p_giesekus; dct)
 	final_plot = plot(plots..., plot_title="Last training step, $(now())")
     display(final_plot)
