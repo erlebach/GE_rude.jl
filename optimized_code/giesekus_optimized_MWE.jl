@@ -12,14 +12,14 @@ function dudt_giesekus(u, p, t, gradv)
 
     # Rate-of-strain (symmetric) and vorticity (antisymmetric) tensors
 	∇v = SA_F32[0. 0. 0. ; gradv(t) 0. 0. ; 0. 0. 0.]
-	D = 0.5 .* (∇v .+ transpose(∇v))
+	D = 0.5 .* (∇v + transpose(∇v))
 
 	T1 = (η0/τ) .* D 
 	T2 = (transpose(∇v) * σ) + (σ * ∇v)
 
 	coef = α / (τ * η0)
 	F = coef * (σ * σ)
-	du = -σ / τ .+ T1 .+ T2  .- F .+ T2  # 9 equations (static matrix)
+	du = -σ / τ + T1 + T2  - F  # 9 equations (static matrix)
 end
 
 function run()
@@ -36,7 +36,8 @@ function run()
 	γ_protoc = dct[:γ_protoc]  # The type should now be correctly inferred on the LHS
 	ω_protoc = dct[:ω_protoc]
 
-	@code_warntype dudt_giesekus(u, p, t, cos)
+	#@code_warntype dudt_giesekus(u, p, t, cos)
+	dudt_giesekus(u, p, t, cos)
 
 	tspan = (0., 5.)
 	σ0 = SA[0.  0.  0.; 0.  0.  0.; 0.  0.  0.]
