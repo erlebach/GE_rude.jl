@@ -1,8 +1,8 @@
-using DifferentialEquations, DiffEqFlux
-using Flux
-using StaticArrays
+#using DifferentialEquations, DiffEqFlux
+#using Flux
+#using StaticArrays
 
-function tbnn(σ, D, model_weights, model_univ, t)
+function tbnn_opt(σ, D, model_weights, model_univ, t)
 	#λ = zeros(SVector{9})
 	λ = zeros(9) # must be mutable
 
@@ -40,7 +40,7 @@ function tbnn(σ, D, model_weights, model_univ, t)
     # Tensor combining layer
 	F = g[1] .* I    +   g[2] .* σ    +   g[3] .* D    +   g[4] .* T4   +   g[5] .* T5 + 
 	    g[6] .* T6   +   g[7] .* T7   +   g[8] .* T8   +   g[9] .* T9
-    
+	println("tbnn, T: ", typeof(T7), typeof(F))
 	#=
 	# Capture data
 	if dct[:captureG]
@@ -56,7 +56,7 @@ function tbnn(σ, D, model_weights, model_univ, t)
     return F
 end
 
-function dudt_univ(u, p, t, gradv, model_univ, n_weights, model_weights)
+function dudt_univ_opt(u, p, t, gradv, model_univ, n_weights, model_weights)
 	# the parameters are [NN parameters, ODE parameters)
 
 	η0, τ = @view p[end-1 : end]
@@ -73,13 +73,29 @@ function dudt_univ(u, p, t, gradv, model_univ, n_weights, model_weights)
 
 	# Run stress/strain through a Tensor-Base Neural Network (TBNN)
 	# Change tbnn to read D
-	F = tbnn(σ, D, model_weights, model_univ, t)
+	F = tbnn_opt(σ, D, model_weights, model_univ, t)
 	#println(F)
+
+	println("F: ", F, typeof(F))
+	println("T1: ", T1, typeof(T1))
+	println("T2: ", T2, typeof(T2))
+	println("σ: ", σ, typeof(σ))
+	#F: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)NTuple{6, Float64}   # <<< ERROR: should be size 9
+	#T1: [0.0 0.5 0.0; 0.5 0.0 0.0; 0.0 0.0 0.0]StaticArraysCore.SMatrix{3, 3, Float64, 9}
+	#T2: Float32[0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 0.0]StaticArraysCore.SMatrix{3, 3, Float32, 9}
+	#σ: Float32[0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 0.0]StaticArraysCore.SMatrix{3, 3, Float32, 9}
+
 
 	du = -σ ./ τ + T1 + T2  - F ./ τ   # 9 equations (static matrix)
 	#du = -σ  + T1 + T2     # 9 equations (static matrix)
+	# ERROR LINE 79: 
+	# ERROR: LoadError: MethodError: no method matching -(::StaticArraysCore.SMatrix{3, 3, Float64, 9}, ::NTuple{6, Float64})
+# Stacktrace:
+ # [1] dudt_univ_opt at /Users/erlebach/src/2022/rude/giesekus/GE_rude.jl/rude_optimized/tbnn_optimized.jl:79
+ # [2] dudt_remade at /Users/erlebach/src/2022/rude/giesekus/GE_rude.jl/rude_optimized/rude_functions.jl:243
 end
 
+#=
 function run()
 	u = [0.  0.  0.; 0.  0.  0.; 0.  0.  0.]
 	t = 0.
@@ -122,9 +138,10 @@ function run()
 	@time sol_giesekus = solve(prob_giesekus_tbnn, Tsit5())
 	@time sol_giesekus = solve(prob_giesekus_tbnn, Tsit5())
 end
+=#
 
 	#--------------------------------------
 
 #----------------------------------------------------------------------
-run()
+# run()
 
