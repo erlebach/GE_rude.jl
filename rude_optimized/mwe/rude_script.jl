@@ -17,7 +17,6 @@ using Dates
 using StaticArrays
 
 include("./rude_functions.jl")
-#include("./rude_impl.jl")
 
 # There are 8 protocols for each value of ω0 and γ0. So if you have 4 pairs (ω0, γ0), 
 # you will have 8 protocols for each pair. (That is not what Sachin's problem proposes). 
