@@ -16,19 +16,14 @@ function single_run(dct)
     
 	p_system = Float32[0., 0.]  # change 2023-02-26_15:40
     
-	θ0 = [0.] #zeros(size(p_model))
 	θi = [0.] #p_model
-    
-    # Rewrite above section to use Optimizer rather than sciml_train
-	σ12_all = [0]  # actually solution to Giesekus
 
-	k = 1
 	# Loss function closure (first parameter: concatenate all parameters)
-        loss_fn(θ) = loss_univ([θ; p_system], protocols[1], tspan, σ0, σ12_all, 1, dct)
+	loss_fn(θ) = loss_univ([θ; p_system], protocols[1], tspan, σ0, [0.], 1) #dct)
         adtype = Optimization.AutoZygote()
         optf = Optimization.OptimizationFunction((x,p)->loss_fn(x),  adtype)
         optprob = Optimization.OptimizationProblem(optf, θi)  
-        parameter_res = Optimization.solve(optprob, Optimisers.AMSGrad(), sensealg=ReverseDiffVJP(true), allow_f_increases=false, maxiters=dct[:maxiters]) 
+		parameter_res = Optimization.solve(optprob, Optimisers.AMSGrad(), sensealg=ReverseDiffVJP(true), allow_f_increases=false, maxiters=20)
     #end
 end
 
@@ -37,7 +32,7 @@ function dudt_univ_opt(u, p, t)
 	du = @SMatrix [0. 0. 0.; 0. 0. 0.; 0. 0. 0.]  # Static array
 end
 
-function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, dct)
+function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories)
 	dudt_protocol(u, p, t) = dudt_univ_opt(u, p ,t)
 	θ = [1]
     prob = ODEProblem(dudt_protocol, σ0, tspans[1], θ)
@@ -50,12 +45,13 @@ function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, dct)
 	# EnsembleProblem: https://docs.sciml.ai/DiffEqDocs/dev/features/ensemble/
     prob_func1(prob, i, repeat) = prob_func(prob, i, repeat)
     ensemble_prob = EnsembleProblem(prob, prob_func=prob_func1)
-	sim = solve(ensemble_prob, Tsit5(), ensemble, trajectories=trajectories, saveat=dct[:saveat])  # original
+	saveat = 0.2
+	sim = solve(ensemble_prob, Tsit5(), ensemble, trajectories=trajectories, saveat=0.2)  # original
 end
 
-function loss_univ(θ,protocols,tspans,σ0,σ12_all,trajectories, dct)
+function loss_univ(θ,protocols,tspans,σ0,σ12_all,trajectories)
     loss = 0
-    results = ensemble_solve(θ, EnsembleThreads(), protocols, tspans, σ0, trajectories, dct)
+    results = ensemble_solve(θ, EnsembleThreads(), protocols, tspans, σ0, trajectories)
     for k = range(1,trajectories,step=1)
 		xxx = results[k][2,1,:]  # 2nd row, 1st column: σ12 = σ21
 		σ12_pred = results[k][2,1,:]  # 2nd row, 1st column: σ12 = σ21
