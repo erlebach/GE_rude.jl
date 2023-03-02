@@ -15,16 +15,9 @@ using BSON: @save, @load
 using NPZ
 using Dates
 using StaticArrays
-#using Profile   # #profiling speed
 
-# Need a global function
 include("./rude_functions.jl")
-include("./myplots.jl")
 include("./rude_impl.jl")
-include("./tbnn_optimized.jl") # solve 9 equ
-include("giesekus_optimized_MWE.jl") # solve 9 equ
-
-println("after includes: ", now())
 
 # There are 8 protocols for each value of ω0 and γ0. So if you have 4 pairs (ω0, γ0), 
 # you will have 8 protocols for each pair. (That is not what Sachin's problem proposes). 
@@ -130,11 +123,9 @@ end
 const dicts = []
 run = 0
 
-println(".... Start parameter loop ...., now: ", now())
 for o in dct_params[:ω0]
     for g in dct_params[:γ0]
         global run += 1
-        println("..... run = $(run)")
 		dct[:start_datetime] = now()
 		dct[:end_datetime] = "Simulation not ended" 
         dct[:datetime] = now()
@@ -153,39 +144,8 @@ for o in dct_params[:ω0]
         # dct[:saveat] = (saveat=saveat[2:end-1], save_start=true, save_end=true)
         # dct[:saveat] = (saveat=saveat[1:end], save_start=true, save_end=false)
 		# Add these arguments to a call to solve(....; dct[:saveat]...)
-		println("Simulation time: ", dct[:T])
-		println("saveat time: ", dct[:saveat])
 
-		YAML.write_file("latest_dict_run$run.yml", dct)
-		println("before single_run, now: ", now())
-
-		print("time for single_run ***************************")
         figure = single_run(dct)
-
-        # deepcopy will make sure that the results is different than dct
-        # Without it, the dictionaries saved in the list will all be the same
-		dct[:end_datetime] = now() # to measure computational time
-        push!(dicts, deepcopy(dct))
-        fig_file_name = "plot_" * "run$(dct[:run]).pdf"
-        savefig(figure, fig_file_name)
     end
 end
-
-# Write all dictionaries to a file in YAML format (look it up)
-# This file should beesaved, together with jl files, plot files, to a folder, for safekeeping
-# Cannot save in the form of dct[:xxx]
-tdnncoefs = reduce(hcat, dct[:tdnn_coefs])
-tdnntraces = reduce(hcat, dct[:tdnn_traces])
-tdnnFs = reduce(hcat, dct[:tdnn_Fs])
-println("size(tdnncoees): ", size(tdnncoefs))
-@save "tdnn_coefs.bson" tdnncoefs  # save data to a file for analysis
-@save "losses.bson" losses=dct[:losses]
-# NPZ.npzwrite("tdnn_coefs.npz", tdnncoefs)
-# NPZ.npzwrite("tdnn_traces.npz", tdnntraces)
-# NPZ.npzwrite("tdnn_Fs.npz", tdnnFs)
-pop!(dct, :losses) # remove key from dictionary
-pop!(dct, :tdnn_coefs)
-pop!(dct, :tdnn_traces)
-pop!(dct, :tdnn_Fs)
-YAML.write_file("dicts.yml", dicts)
 

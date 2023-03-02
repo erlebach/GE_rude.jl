@@ -16,7 +16,7 @@ function single_run(dct)
     tsave = range(tspan[1],tspan[2],length=50)
 	σ0 = SA[0.  0.  0.; 0.  0.  0.; 0.  0.  0.]  # now solving 9 equations   static array. 3x3 array
     
-    ω = dct[:ω]  # may lead to "Warning: Reverse-Mode AD VJP choices all failed. Falling back to numerical VJPs"
+    ω = dct[:ω]  
     γ = dct[:γ]
     γs = dct[:γ_protoc]
     ωs = dct[:ω_protoc]
@@ -56,11 +56,13 @@ function single_run(dct)
     hid = 1
 
 	#----------------------- MODEL ---------
+	##
     model_univ = FastChain(FastDense(9, hid, act),
                         FastDense(hid, hid, act),
                         #FastDense(hid, hid, act),  # a second hidden layer
 						FastDense(hid, 9))
 	dct[:model_univ] = model_univ
+	##
 	#--------------------------------------
     
     # The protocol at which we'll start continuation training
@@ -68,13 +70,14 @@ function single_run(dct)
 	# Retrain the network from scratch (start_at = 1)
 	start_at = 1
     
+	##
         # The model weights are destructured into a vector of parameters
 		println("Train the model from scratch")
         p_model = initial_params(model_univ)
         n_weights = length(p_model)
         p_model = zeros(n_weights)
+	##
 
-	println("n_weights: ", n_weights)
 	dct[:n_weights] = n_weights
 	dct[:model_weights] = p_model
     
@@ -91,13 +94,12 @@ function single_run(dct)
     iter = 0  # SHOULD BE the last iteration run previously
 	σ12_all = 0  # actually solution to Giesekus
 
-    # ISSUE: Initial loss is around 70. WHY? 
-    for k = range(start_at, length(protocols), step=1)
-        # Loss function closure
-        loss_fn(θ) = loss_univ([θ; p_system], protocols[1:k], tspans[1:k], σ0, σ12_all, k, dct)
+	k = 1
+	# Loss function closure (first parameter: concatenate all parameters)
+        loss_fn(θ) = loss_univ([θ; p_system], protocols[1:1], tspans[1:1], σ0, σ12_all, 1, dct)
         adtype = Optimization.AutoZygote()
         optf = Optimization.OptimizationFunction((x,p)->loss_fn(x),  adtype)
         optprob = Optimization.OptimizationProblem(optf, θi)  
         parameter_res = Optimization.solve(optprob, Optimisers.AMSGrad(), sensealg=ReverseDiffVJP(true), allow_f_increases=false, maxiters=dct[:maxiters]) 
-    end
+    #end
 end
