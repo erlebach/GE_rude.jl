@@ -199,12 +199,17 @@ function single_run(dct)
         optf = Optimization.OptimizationFunction((x,p)->loss_fn(x),  adtype)
         optprob = Optimization.OptimizationProblem(optf, θi)  # get_parameter_values(nn_eqs)) # nn_eqs???
         #parameter_res = Optimization.solve(optprob, Optimisers.AMSGrad(), abstol=1.e-6, reltol=1.e-6, callback=cb_plot, maxiters=dct[:maxiters]) # 
-		# Original code
-        #parameter_res = Optimization.solve(optprob, Optimisers.AMSGrad(), callback=cb_plot, sensealg=ReverseDiffVJP(true), allow_f_increases=false, maxiters=dct[:maxiters]) 
+		# Original code  (might not have an issue with Zygot)
+		# https://github.com/FluxML/Flux.jl/issues/1626
+        parameter_res = Optimization.solve(optprob, Optimisers.AMSGrad(), callback=cb_plot, sensealg=ReverseDiffVJP(true), allow_f_increases=false, maxiters=dct[:maxiters]) 
 		# default lr is 1.e-3
+		# Somehow I am trying to set the index of a static array. Why? 
+		#=
         parameter_res = Optimization.solve(optprob, Optimisers.Adam(1f-3), 
 										   callback=cb_plot, sensealg = ReverseDiffVJP(true), 
 										   allow_f_increases=true, maxiters=dct[:maxiters])
+		=#
+
 		# final network parameters
         θi = parameter_res.u
         push!(out_files, "tbnn_k=" * string(k))

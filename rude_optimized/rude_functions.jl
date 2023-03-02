@@ -266,11 +266,25 @@ function loss_univ(θ,protocols,tspans,σ0,σ12_all,trajectories, dct)
 	println("===> loss_univ: trajectories: $trajectories")
     results = ensemble_solve(θ, EnsembleThreads(), protocols, tspans, σ0, trajectories, dct)
     for k = range(1,trajectories,step=1)
-        σ12_pred = results[k][4,:]
+		# Results[k] is 3x3,61 
+		#println("results[k] size: ", size(results[k]))
+        #σ12_pred = results[k][4,:]
+		println("(k=$k), results typeof: ", typeof(results))
+		println("(k=$k), results[k] typeof: ", typeof(results[k]))
+		println("(k=$k), results[k][2,1,:] typeof: ", typeof(results[k][2,1,:]))
+		xxx = results[k][2,1,:]  # 2nd row, 1st column: σ12 = σ21
+		println("after xxx")
+		σ12_pred = results[k][2,1,:]  # 2nd row, 1st column: σ12 = σ21
+		#println("after σ12_pred: ", σ12_pred)	
         σ12_data = σ12_all[k]
+		#println("after σ12_data: ", σ12_data)
         loss += sum(abs2, σ12_pred - σ12_data)
+		#println("==> loss: ", loss)
     end
+	println("before loss +=")
     loss += 0.01*norm(θ,1)   # L1 norm for sparsification
+	println("after loss +=, loss: ")
+	println("   loss: ", loss)
     return loss
 end
 
