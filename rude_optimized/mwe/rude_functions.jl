@@ -1,5 +1,7 @@
 function dudt_univ_opt(u, p, t, gradv, model_univ, n_weights, model_weights)
-	du = @SMatrix [0. 0. 0.; 0. 0. 0.; 0. 0. 0.]
+	du = @SMatrix [0. 0. 0.; 0. 0. 0.; 0. 0. 0.]  # Static array
+	#du = zeros(Float64,3,3)  # regular Array (creates another error)
+	#ERROR: LoadError: OrdinaryDiffEq.TypeNotConstantError(StaticArraysCore.SMatrix{3, 3, Float64, 9}, Matrix{Float64})
 end
 
 function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, dct)
@@ -18,7 +20,12 @@ function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, dct)
         remake(prob, f=dudt_remade, tspan=tspans[i])
     end
 
-	println("trajectories: ", trajectories)
+	println("=========================")
+	println("++> trajectories: ", trajectories)    # Train the model from scratch
+	println("--> trajectories: ", trajectories)    # 1
+	println("--> trajectories: ", trajectories)    # 1
+	println("--> trajectories: ", trajectories)    # 1
+	println("=========================")
 
 	# EnsembleProblem: https://docs.sciml.ai/DiffEqDocs/dev/features/ensemble/
     prob_func1(prob, i, repeat) = prob_func(prob, i, repeat, model_univ, n_weights, model_weights)

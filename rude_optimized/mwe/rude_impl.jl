@@ -3,18 +3,17 @@ function single_run(dct)
 
 	# Define the simple shear deformation protocol (all components except v21(t))
     v11(t) = 0
-    v12(t) = 0
-    v13(t) = 0
-    v22(t) = 0
-    v23(t) = 0
-    v31(t) = 0
-    v32(t) = 0
-    v33(t) = 0
     
-    # Iniitial conditions and time span
+    # Initial conditions and time span
 	tspan = (0.0f0, dct[:T])
     tsave = range(tspan[1],tspan[2],length=50)
-	σ0 = SA[0.  0.  0.; 0.  0.  0.; 0.  0.  0.]  # now solving 9 equations   static array. 3x3 array
+
+	#σ0 = SA_F32[0.  0.  0.; 0.  0.  0.; 0.  0.  0.]  # Generates load error
+
+	σ0 = SA[0.  0.  0.; 0.  0.  0.; 0.  0.  0.]  # Generates set_index! error
+	#setindex!(::StaticArraysCore.SMatrix{3, 3, Float64, 9}, value, ::Int) is not defined. 
+	#
+	println("typeof σ0: ", typeof(σ0))
     
     ω = dct[:ω]  
     γ = dct[:γ]
@@ -30,7 +29,7 @@ function single_run(dct)
 
     # GE: How are v11, etc computed? All others are set to zero. 
 	# Linear array of size 9
-	protocols = [ [v11,v12,v13,  v21_protoc[1], v22,v23,v31,v32,v33] ]
+	protocols = [ [v11,v11,v11,  v21_protoc[1], v11,v11,v11,v11,v11] ]
     nb_protoc = 1
     # I only allowed for 8 protocols (see above)
     nb_protocols = length(protocols)
@@ -52,15 +51,11 @@ function single_run(dct)
     t_all = []
     
     # NN model for the nonlinear function F(σ,γ̇)
-    act = tanh
-    hid = 1
 
 	#----------------------- MODEL ---------
 	##
-    model_univ = FastChain(FastDense(9, hid, act),
-                        FastDense(hid, hid, act),
-                        #FastDense(hid, hid, act),  # a second hidden layer
-						FastDense(hid, 9))
+    model_univ = FastChain(FastDense(9, 1, identity),
+						FastDense(1, 9))
 	dct[:model_univ] = model_univ
 	##
 	#--------------------------------------
