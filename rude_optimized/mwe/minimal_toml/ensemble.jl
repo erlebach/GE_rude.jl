@@ -13,7 +13,9 @@ function prob_func(prob, i, repeat)
 end
 
 ensemble_prob = EnsembleProblem(prob, prob_func = prob_func)
-sim = solve(ensemble_prob, Tsit5(), EnsembleThreads(), trajectories=1)
+sim = solve(ensemble_prob, Tsit5(), EnsembleThreads(), trajectories=1, saveat=0.2)
 
 # sim[i].prob.u0: initial condition of problem i
-print(sim)
+println(sim[1].prob)
+println(sim[1].prob.u0)
+println(sim[1] |> size)
