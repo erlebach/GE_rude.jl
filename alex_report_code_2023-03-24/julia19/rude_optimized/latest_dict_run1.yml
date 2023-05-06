@@ -1,0 +1,48 @@
+tdnn_coefs: []
+maxiters: 16
+skip_factor: 5
+ω_protoc:
+  - 1.0
+  - 1.0
+  - 0.5
+  - 0.5
+  - 2.0
+  - 2.0
+  - 0.33333334
+  - 0.33333334
+nb_protocols: 1
+end_datetime: "Simulation not ended"
+dct_NN:
+  hid_layer: 1
+  out_layer: 9
+  in_layer: 9
+  act: tanh
+  nb_hid_layers: 1
+captureG: false
+tdnn_Fs: []
+saveat: 0.2
+run: 1
+datetime: 2023-03-01T21:46:53.196
+Ncycles: 3
+start_datetime: 2023-03-01T21:46:53.196
+T: 12.0
+nb_pts_per_cycle: 40
+γ: 1.0
+final_plot: false
+tdnn_traces: []
+start_at: 1
+ω: 1.0
+dct_giesekus:
+  α: 0.8
+  τ: 1.0
+  η0: 1.0
+losses: []
+γ_protoc:
+  - 1.0
+  - 2.0
+  - 1.0
+  - 2.0
+  - 1.0
+  - 2.0
+  - 1.0
+  - 2.0

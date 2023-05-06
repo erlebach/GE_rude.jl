@@ -14,15 +14,15 @@ function tbnn(σ, D, model_weights, model_univ, t)
 	T9 = T4 * T5 + T5 * T4
 
     # Compute the integrity basis from scalar invariants. Traces. 
-	λ[1] = 3.
-	λ[2] = σ[1,1] + σ[2,2] + σ[3,3]
-	λ[3] = D[1,1] + D[2,2] + D[3,3]
-	λ[4] = T4[1,1] + T4[2,2] + T4[3,3]
-	λ[5] = T5[1,1] + T5[2,2] + T5[3,3]
-	λ[6] = T6[1,1] + T6[2,2] + T6[3,3]
-	λ[7] = T7[1,1] + T7[2,2] + T7[3,3]
-	λ[8] = T8[1,1] + T8[2,2] + T8[3,3]
-	λ[9] = T9[1,1] + T9[2,2] + T9[3,3]
+	λ[1] = tr(σ) 
+	λ[2] = tr(T4)
+	λ[3] = tr(T5) 
+	λ[4] = tr(σ*σ*σ)
+	λ[5] = tr(D*D*D)
+	λ[6] = 0.5 * tr(T6) 
+	λ[7] = 0.5 * tr(σ*σ*D)
+	λ[8] = 0.5 * tr(σ*D*D) 
+	λ[9] = 0.5 * tr(σ*σ*D*D) 
     
 	g = zeros(SVector{9}) # Temporary
 

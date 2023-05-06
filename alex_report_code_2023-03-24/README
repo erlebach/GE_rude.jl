@@ -1,0 +1,9 @@
+Code written by GE (mostly) and Alex Peterson to run the Rude problem. 
+plot_data.jl
+rude_PTT.jl
+rude_giesekus.jl
+
+Code written by GE to optmize the Giesekus, PTT, and tensorial basis Networks to use
+vector notation and static arrays (2023-05-02)
+rude_PTT_optimized.jl
+rude_giesekus_optimized.jl

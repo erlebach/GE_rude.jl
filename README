@@ -64,8 +64,7 @@ Somehow, I am not executing the code I think I am).
 
 In a whole series of runs, my loss is independent of the network parameters. That is SERIOUSLY INCORRECT!
 ----------------------------------------------------------------------
-I am confused again. What is the relationship between Gisekus (model) and the equation we are seeking. In other 
-words, are we expecting agreement? What are the exact solutions to the equations?
+I am confused again. What is the relationship between Giesekus (model) and the equation we are seeking. In other words, are we expecting agreement? What are the exact solutions to the equations?
 ----------------------------------------------------------------------
 2023-02-27
 I derived that \eta_0 = \lambda * G

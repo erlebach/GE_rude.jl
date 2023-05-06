@@ -1,0 +1,29 @@
+# Author: G. Erlebacher
+# date: 2023-05-05
+# Optimized Giesekus
+# Use of 
+
+using RelevanceStacktrace
+using  DifferentialEquations
+using StaticArrays
+
+# Set up the Giesekus model
+function dudt!(du, σ, p, t)
+    du .= -σ 
+end
+
+p_giesekus = [1.,1.,1.]
+σ0 = SizedMatrix{3,3}([1. 0. 0. ; 0. 2. 0. ; 3. 0. 0.])
+#σ0 = [1. 0. 0. ; 0. 2. 0. ; 3. 0. 0.]
+
+
+fct(t) = 1*cos(t)
+
+prob_giesekus = ODEProblem(dudt!, σ0, (0., 2.), p_giesekus)
+
+# Error was not my fault. It was a bug in DifferentialEquations.jl. Corner case. 
+# solve_giesekus = solve(prob_giesekus, Rodas4(), saveat=0.2)  # Broadcast error
+
+solve_giesekus = solve(prob_giesekus, Tsit5(), saveat=0.2)  # Runs fine
+
+σ12_data = solve_giesekus[4,:]

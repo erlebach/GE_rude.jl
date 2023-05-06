@@ -65,6 +65,68 @@ function dudt_giesekus!(du, u, p, t, gradv)
     ##
 end
 
+function dudt_PTT!(du, u, p, t, gradv)
+    # Destructure the parameters
+    #η0 = p[1]
+    #τ = p[2]  # \lambda
+    #α = p[3]
+
+    η0, τ, G, ϵ = p
+
+
+    # Governing equations are for components of the stress tensor
+    σ11,σ22,σ33,σ12,σ13,σ23 = u
+
+    # Specify the velocity gradient tensor
+    # ∇v  ∂vᵢ / ∂xⱼ v12: partial derivative of the 1st component 
+    # of v(x1, x2, x3) with respect to the 3rd component of x
+	v11,v12,v13,v21,v22,v23,v31,v32,v33 = gradv      # only v21 is non-zero for Alex
+
+    # Compute the rate-of-strain (symmetric) and vorticity (antisymmetric) tensors
+    γd11 = 2*v11(t)  
+    γd22 = 2*v22(t) 
+    γd33 = 2*v33(t)
+    γd12 = v12(t) + v21(t)  # = v21
+    γd13 = v13(t) + v31(t)
+    γd23 = v23(t) + v32(t)
+    ω12 = v12(t) - v21(t)  # = -v21
+    ω13 = v13(t) - v31(t)  
+    ω23 = v23(t) - v32(t)
+
+    trace = σ11 + σ22 + σ33
+    ϵ = 0.1
+    G = 1.0
+    fPTTλ = exp(ϵ * trace / G) / τ
+
+	# from models/models_impl.jl
+	# coef = α / (λ * G)   # I find that η0 = λ G (Correct or not?) 
+    # du[1] = -σ11 / λ - coef * (σ11^2 + σ12^2) + 2. * γ̇ * σ12 
+    # du[2] = -σ22 / λ - coef * (σ22^2 + σ12^2)
+    # du[3] = -σ33 / λ - coef * σ33^2
+    # du[4] = -σ12 / λ - coef * ((σ11 + σ22) * σ12) + γ̇ * σ22 + G * γ̇
+
+    # Define F for the Giesekus model
+    F11 = -τ*(σ11*γd11 + σ12*γd12 + σ13*γd13)
+    F22 = -τ*(σ12*γd12 + σ22*γd22 + σ23*γd23) 
+    F33 = -τ*(σ13*γd13 + σ23*γd23 + σ33*γd33) 
+    F12 = (-τ*(σ11*γd12 + σ12*γd22 + σ13*γd23 + γd11*σ12 + γd12*σ22 + γd13*σ23)/2
+    F13 = (-τ*(σ11*γd13 + σ12*γd23 + σ13*γd33 + γd11*σ13 + γd12*σ23 + γd13*σ33)/2
+    F23 = (-τ*(σ12*γd13 + σ22*γd23 + σ23*γd33 + γd12*σ13 + γd22*σ23 + γd23*σ33)/2
+
+    ##
+    # The model differential equations
+	# Why is memory allocated? Must be the RHS. Redo this with ModelingToolkit. 
+	# Limit to four equations for further speed (perhaps not)
+    du[1] = η0*γd11/τ - fPTTλ*σ11 - (ω12*σ12 + ω13*σ13) - F11/τ
+    du[2] = η0*γd22/τ - fPTTλ*σ22 - (ω23*σ23 - ω12*σ12) - F22/τ
+    du[3] = η0*γd33/τ - fPTTλ*σ33 + (ω13*σ13 + ω23*σ23) - F33/τ
+    du[4] = η0*γd12/τ - fPTTλ*σ12 - (ω12*σ22 + ω13*σ23 - σ11*ω12 + σ13*ω23)/2 - F12/τ
+    du[5] = η0*γd13/τ - fPTTλ*σ13 - (ω12*σ23 + ω13*σ33 - σ11*ω13 - σ12*ω23)/2 - F13/τ
+    du[6] = η0*γd23/τ - fPTTλ*σ23 - (ω23*σ33 - ω12*σ13 - σ12*ω13 - σ22*ω23)/2 - F23/τ
+	nothing
+    ##
+end
+
 # change to tbnn!, add a first argument of preallocated T
 function tbnn(σ, γd, model_weights, model_univ, t)
     # Tensor basis neural network (TBNN)

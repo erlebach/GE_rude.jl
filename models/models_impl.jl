@@ -25,7 +25,7 @@ end # module
 
 function ODE_PTT!(du, u, p, t, gamma_dot)
     λ, G, γ₀, ω, ϵ = p
-    γ̇ = gamma_dot(t, γ₀, ω)
+exp(ϵ * trace / G) / λ    γ̇ = gamma_dot(t, γ₀, ω)
     σ11, σ22, σ33, σ12 = u
     trace = σ11 + σ22 + σ33
     fPTTλ = exp(ϵ * trace / G) / λ

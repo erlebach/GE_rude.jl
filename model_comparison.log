@@ -1,0 +1,671 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  27 FEB 2023 16:22
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**model_comparison.tex
+(./model_comparison.tex
+LaTeX2e <2017-04-15>
+Babel <3.10> and hyphenation patterns for 84 language(s) loaded.
+(/usr/local/texlive/2017/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
+(/usr/local/texlive/2017/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2014/09/29 v1.4h Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(./model_comparison.aux)
+\openout1 = `model_comparison.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no â in font cmtt10!
+Missing character: There is no ‚ in font cmtt10!
+Missing character: There is no € in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ì in font cmtt10!
+Missing character: There is no ‡ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no â in font cmtt10!
+Missing character: There is no ‚ in font cmtt10!
+Missing character: There is no € in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ì in font cmtt10!
+Missing character: There is no ‡ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ì in font cmtt10!
+Missing character: There is no ‡ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ì in font cmtt10!
+Missing character: There is no ‡ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no â in font cmtt10!
+Missing character: There is no ˆ in font cmtt10!
+Missing character: There is no ‡ in font cmtt10!
+Missing character: There is no â in font cmtt10!
+Missing character: There is no ˆ in font cmtt10!
+Missing character: There is no ‚ in font cmtt10!
+Missing character: There is no á in font cmtt10!
+Missing character: There is no µ in font cmtt10!
+Missing character: There is no ¢ in font cmtt10!
+Missing character: There is no â in font cmtt10!
+Missing character: There is no ˆ in font cmtt10!
+Missing character: There is no ‚ in font cmtt10!
+Missing character: There is no â in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no ¼ in font cmtt10!
+
+Overfull \hbox (74.99634pt too wide) in paragraph at lines 72--72
+[]\OT1/cmtt/m/n/10 v11,v12,v13,v21,v22,v23,v31,v32,v33 = gradv      # only v21 
+is non-zero for Alex[] 
+ []
+
+
+Overfull \hbox (85.49625pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 # Compute the rate-of-strain (symmetric) and vorticity (
+antisymmetric) tensors[] 
+ []
+
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ì in font cmtt10!
+Missing character: There is no ‡ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no » in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ì in font cmtt10!
+Missing character: There is no ‡ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ì in font cmtt10!
+Missing character: There is no ‡ in font cmtt10!
+[1
+
+{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+
+Overfull \hbox (6.74693pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 F11 = -*(11*d11 + 12*d12 + 13*d13) + (*/0)*(11^2 + 12^2 
++ 13^2)[] 
+ []
+
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+
+Overfull \hbox (6.74693pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 F22 = -*(12*d12 + 22*d22 + 23*d23) + (*/0)*(12^2 + 22^2 
++ 23^2)[] 
+ []
+
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+
+Overfull \hbox (6.74693pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 F33 = -*(13*d13 + 23*d23 + 33*d33) + (*/0)*(13^2 + 23^2 
++ 33^2)[] 
+ []
+
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+
+Overfull \hbox (11.99689pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 F12 = (-*(11*d12 + 12*d22 + 13*d23 + d11*12 + d12*22 + d
+13*23)/2[] 
+ []
+
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+
+Overfull \hbox (11.99689pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 F13 = (-*(11*d13 + 12*d23 + 13*d33 + d11*13 + d12*23 + d
+13*33)/2[] 
+ []
+
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+
+Overfull \hbox (11.99689pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 F23 = (-*(12*d13 + 22*d23 + 23*d33 + d12*13 + d22*23 + d
+23*33)/2[] 
+ []
+
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ± in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+
+Overfull \hbox (6.74693pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 du[4] = 0*d12/ - 12/ - (12*22 + 13*23 - 11*12 + 13*23)/2
+ - F12/[] 
+ []
+
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+
+Overfull \hbox (6.74693pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 du[5] = 0*d13/ - 13/ - (12*23 + 13*33 - 11*13 - 12*23)/2
+ - F13/[] 
+ []
+
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no · in font cmtt10!
+Missing character: There is no Î in font cmtt10!
+Missing character: There is no ³ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ƒ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no ‰ in font cmtt10!
+Missing character: There is no Ï in font cmtt10!
+Missing character: There is no „ in font cmtt10!
+
+Overfull \hbox (6.74693pt too wide) in paragraph at lines 72--72
+[]    \OT1/cmtt/m/n/10 du[6] = 0*d23/ - 23/ - (23*33 - 12*13 - 12*13 - 22*23)/2
+ - F23/[] 
+ []
+
+[2] (./model_comparison.aux) ) 
+Here is how much of TeX's memory you used:
+ 203 strings out of 492995
+ 2270 string characters out of 6132704
+ 60074 words of memory out of 5000000
+ 3841 multiletter control sequences out of 15000+600000
+ 3808 words of font info for 15 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 23i,4n,19p,140b,243s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2017/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmr10.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmtt10.pfb>
+Output written on model_comparison.pdf (2 pages, 36401 bytes).
+PDF statistics:
+ 19 PDF objects out of 1000 (max. 8388607)
+ 12 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

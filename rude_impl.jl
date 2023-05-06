@@ -113,6 +113,7 @@ function single_run(dct)
     τ = gie[:τ]
     α = gie[:α]
     p_giesekus = [η0, τ, α]
+    p_PTT = [η0, τ, G, ϵ]
     σ12_all = Any[]
     t_all = Any[]
     for k = range(1, length(protocols), step=1)

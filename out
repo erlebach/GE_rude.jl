@@ -1,0 +1,8 @@
+
+signal (2): Interrupt: 2
+in expression starting at /Users/erlebach/src/2022/rude/giesekus/GE_rude.jl/rude_script.jl:6
+__psynch_cvwait at /usr/lib/system/libsystem_kernel.dylib (unknown line)
+unknown function (ip: 0x0)
+jfptr_uniqueNOT._27250 at /Applications/Julia-1.8.app/Contents/Resources/julia/lib/julia/sys.dylib (unknown line)
+unknown function (ip: 0x0)
+Allocations: 2739684 (Pool: 2738091; Big: 1593); GC: 2
