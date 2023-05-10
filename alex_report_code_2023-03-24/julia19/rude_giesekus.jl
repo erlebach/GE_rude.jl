@@ -358,6 +358,7 @@ end
 # writedlm("OpenFOAM/RUDE/weights3.txt", θi[10*32 + 33*32 + 1:end])
 
 # Build full parameter vectors for model testing
+# Is it wise to keep the names the same?
 θ0 = [θ0; p_system]
 θi = [θi; p_system]
 

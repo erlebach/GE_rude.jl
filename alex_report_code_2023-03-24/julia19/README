@@ -1,1 +1,5 @@
-Use Julia 1.9
+Use Julia 1.9r0c2
+
+2023-05-10_18:38
+The loss decreases over protocol k, but increaese between protocols. 
+Something is WRONG with how I go from one protocol to another. 
