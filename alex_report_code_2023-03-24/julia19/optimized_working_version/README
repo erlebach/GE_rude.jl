@@ -1,0 +1,10 @@
+2023-05-08
+Author: Gordon Erlebacher
+
+Working version of optimized giesekus using Julia 1.9. 
+Use as a backup when a future version stops working. 
+Single module. 
+
+Giesekus model, NN, and UODE model are stored in indivual functions, 
+optimized to be close to the mathematical tensor representaiton.
+
