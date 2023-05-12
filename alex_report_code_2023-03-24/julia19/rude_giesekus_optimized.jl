@@ -3,6 +3,7 @@ using Revise
 using Flux, Optimization, OptimizationOptimisers, SciMLSensitivity, DifferentialEquations
 using Zygote, Plots, LaTeXStrings, LinearAlgebra, OrdinaryDiffEq, DelimitedFiles
 using StaticArrays
+using StableRNGs
 # using Colors
 
 # substitute giesekus_impl by PTT_impl to change the base equations
@@ -15,34 +16,41 @@ includet("myplots.jl")
 
 # Set up Parameters
 VERBOSE::Bool = false 
-const max_nb_protocols::Int32 = 8
-const max_nb_iter::Int32 = 100   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
+const max_nb_protocols::Int32 = 3
+const max_nb_iter::Int32 = 5   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
 start_at = 1 # Train from scratch
-ω = 1f0
 
 n_protocol_train = 8
+tspan = (0., 12.)
 ampl =  SizedVector{n_protocol_train}([1, 2, 1, 2, 1, 2, 1, 2])
 freq =  SizedVector{n_protocol_train}([1., 1., 0.5, 0.5, 2., 2., 1/3, 1/3])
+ω = 1.0
 v21_fct = Any[t -> ampl[i] * cos(freq[i]*ω*t) for i in range(1, n_protocol_train, step=1)]
-tspan = (0., 12.)
+
+# Set up the protocols
 protocols, tspans, tsaves = setup_protocols(n_protocol_train, v21_fct, tspan) 
 
 # σ0 = SizedMatrix{3,3}([0f0 0f0 0f0; 0f0 0f0 0f0; 0f0 0f0 0f0])
 σ0 = SizedMatrix{3,3}([0. 0. 0.; 0. 0. 0.; 0. 0. 0.])
 
 # Parameters for the Giesekus model
+# Could use a named tuple? (η0=1, τ=1, α=0.8)
 η0, τ, α = [1, 1, 0.8]
 p_giesekus = [η0, τ, α]
-k = 1
-
 
 #********************************
 # Solve base model with no NN
 #********************************
  t_all, σ12_all = solve_giesekus_protocols(protocols, tspans, p_giesekus, σ0, max_nb_protocols);
 
-# Set up Neural Netoork
-model_univ = NeuralNetwork(nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=1)
+ #---------------------------------------------------------
+#  # Execute the Giesekus code with random I.C. and compare to my new code
+# rng =  StableRNG(1234)
+# σ0 = rand(rng, 8)
+# p = p_giesekus
+
+# Set up Neural Netoork (input layer, hidden layers, output layer)
+model_univ = NeuralNetwork(nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=0)
 p_model, re = Flux.destructure(model_univ)
 n_weights = length(p_model)
 p_model = zeros(n_weights)
@@ -64,13 +72,17 @@ callback = function (θ, l, protocols, tspans, σ0, σ12_all, trajectories)
   return false
 end
 
-# Solve the UODE
+#********************************
+# Solve the UODE                
+#********************************
 solve_UODE(θi, max_nb_protocols, p_system, tspans, σ0, σ12_all, callback, 
             model_univ, loss_univ, model_weights, max_nb_iter)
 
 #--------------------------------------------------------
+#*************************************************
 # Prediction using trained weights
 # We use protocols  different than those used for training
+#*************************************************
 v21_1(t) = 2*cos(3*ω*t/4)
 v21_2(t) = 2*cos(3*ω*t)
 v21_3(t) = 2*cos((3*ω*t)/2)

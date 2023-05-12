@@ -3,3 +3,25 @@ Use Julia 1.9r0c2
 2023-05-10_18:38
 The loss decreases over protocol k, but increaese between protocols. 
 Something is WRONG with how I go from one protocol to another. 
+
+2023-05-11_15:13
+Zero layer network. Alex code. 
+nb protocols: 1, 5 iterations.
+17.18770553588867
+9.648482749034857
+4.9433904307413385
+1.3960787388680584
+0.2629184563427207
+0.2629184563427207
+
+Gordon code layer network. Alex code. 
+# The first loss seems ok, but nothing happening in future iterations.
+===> Loss(1): 18.3645
+===> Loss(2): 18.3645
+===> Loss(3): 18.368
+===> Loss(4): 18.3677
+===> Loss(5): 18.365
+===> Loss(6): 18.3645
+
+Problem must be related to Ensemble. 
+1) could be an issue with the equations. But that does not explain the loss not declining.
