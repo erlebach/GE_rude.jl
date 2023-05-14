@@ -25,3 +25,32 @@ Gordon code layer network. Alex code.
 
 Problem must be related to Ensemble. 
 1) could be an issue with the equations. But that does not explain the loss not declining.
+----------------------------------------------------------------------
+2023-05-12_17:37
+I have fixed tbnn in my optimized code. There were errors in the tensors and traces. They are fixed 
+by comparing output with the non-optimized code. 
+
+However, the training process still does not appear to work. 
+----------------------------------------------------------------------
+Old code: 5 iteratinos. 
+0.5357411694526673
+0.43021068731897066
+0.3131076852844824
+0.19568185850997966
+0.10275434307799983
+0.10275434307799983
+
+New optimized code. 
+Layer with float32 parameters got Flaot64 input. 
+===> Loss(1): 0.5355
+===> Loss(2): 0.5355
+===> Loss(3): 0.539
+===> Loss(4): 0.5387
+===> Loss(5): 0.536
+===> Loss(6): 0.5355
+
+The loss is not reducing. 
+----------------------------------------------------------------------
+2023-05-13_16:44
+Folders non_optimized/ and optimized/ created to debug both version of the code. 
+More precisely, get the optimized reuslts to match the non_optimized results. 

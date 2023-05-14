@@ -38,12 +38,7 @@ end
 function dudt_giesekus_opt!(du, σ, p, t, gradv)
     η0, τ, α = p
     # gradv is an array of functions
-    # ∇v = SA[g(t) for g in gradv]
-    # of   ∇v = SA[0. gradv[2,1](t) 0. ; 0. 0. 0. ; 0. 0. 0.]
     ∇v = SA[0.0 0.0 0.0; gradv[2, 1](t) 0.0 0.0; 0.0 0.0 0.0]
-    # println("∇v: ", ∇v)
-    #∇v = [gradv[i](t) for i in 1:length(gradv)]
-    # D = 0.5 .* (∇v .+ transpose(∇v))  # orig
     D = (∇v .+ transpose(∇v))  # necessary to produce same result as original RUDE
     T1 = (η0 / τ) .* D
     T2 = (transpose(∇v) * σ) + (σ * ∇v)

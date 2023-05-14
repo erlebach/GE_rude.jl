@@ -14,18 +14,20 @@ includet("giesekus_impl.jl")
 # Plotting and processing of the solution
 includet("myplots.jl")
 
+# ========== START PARAMETER SETUP =====================================
 # Set up Parameters
 VERBOSE::Bool = false 
 const max_nb_protocols::Int32 = 1
-const max_nb_iter::Int32 = 5   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
+const max_nb_iter::Int32 = 2   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
 start_at = 1 # Train from scratch
+tspan = (0., .0001)
+ω = 1.0
 
 n_protocol_train = 8
-tspan = (0., 12.)
-ampl =  SizedVector{n_protocol_train}([1, 2, 1, 2, 1, 2, 1, 2])
-freq =  SizedVector{n_protocol_train}([1., 1., 0.5, 0.5, 2., 2., 1/3, 1/3])
-ω = 1.0
+ampl =  SizedVector{n_protocol_train}([1., 2., 1., 2., 1., 2., 1., 2.])
+freq =  SizedVector{n_protocol_train}([1., 1., 0.5, 0.5, 2., 2., 1/3., 1/3.])
 v21_fct = Any[t -> ampl[i] * cos(freq[i]*ω*t) for i in range(1, n_protocol_train, step=1)]
+# ========== END PARAMETER SETUP =====================================
 
 # Set up the protocols
 protocols, tspans, tsaves = setup_protocols(n_protocol_train, v21_fct, tspan) 
@@ -52,12 +54,16 @@ p_giesekus = [η0, τ, α]
 # Set up Neural Netoork (input layer, hidden layers, output layer)
 # I would also like to run in Float32 later once debugged.
 model_univ = NeuralNetwork(nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=0)
+
 for p in Flux.params(model_univ)
     fill!(p, 0.00)
 end
+
 # p_model becomes a single 1D linear vector. Needed by the UODE optimizer. 
 p_model, re = Flux.destructure(model_univ)
 n_weights = length(p_model)
+# new for debugging and compatibility with non-optimized code
+p_model = zeros(n_weights)  # <<<<<<<< NEW
 model_weights = p_model # + [1., 1., 1.]
 
 # Parameters of the linear response (η0,τ) + NN weights
@@ -76,11 +82,63 @@ callback = function (θ, l, protocols, tspans, σ0, σ12_all, trajectories)
   return false
 end
 
-#********************************
+# ==============================================================
+if false
+# Make the model weights random for debugging
+function check_giesekus_opt_NN()
+    global re
+    rng = StableRNG(1234)
+    u0 = rand(rng, 6)
+    σ0 = rand(rng, 3, 3)
+    σ0[1,1], σ0[2,2], σ0[3,3], σ0[1,2], σ0[1,3], σ0[2,3] = [u0[i] for i in 1:6]
+    σ0[2,1] = σ0[1,2]
+    σ0[3,1] = σ0[1,3]
+    σ0[3,2] = σ0[2,3]
+
+    p_giesekus = [1., 1.]  # Must be a list
+    t = 3.
+    gradv = [t -> 0.  t -> 0.  t -> 0.; t -> cos(t)  t -> 0.  t -> 0.; t -> 0.  t -> 0.  t -> 0.]
+    println("1. gradv: ", [grad(t) for grad in gradv])
+    du = similar(σ0, 3, 3)
+
+    model_univ = NeuralNetwork(; nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=0)
+    p_model, re = Flux.destructure(model_univ)
+    # p_model = zeros(size(p_model))  # zero weights in a single list
+    rng = StableRNG(4321)
+    p_model = 0.01 .* (-1. .+ 2 .* rand(rng, size(p_model)[1]))  # zero weights in a single list
+
+    # @show p_model
+    p = [p_model; p_giesekus]
+    model_weights = p_model
+    println("len p: ", p|>length)
+                                             #           <<<  re  >>>>
+    dudt_univ_opt!(du, σ0, p, t, gradv, model_univ, model_weights)
+    # @show model_weights
+    println("du: ", du)
+    println("du symmetric? ", is_symmetric(du))
+    println("\ncheck_giesekus_opt_NN: ")
+    display(du)
+    println("==================================================")
+    return du
+end
+
+check_giesekus_opt_NN()
+end
+# ==============================================================
+
+#************************************************************************
 # Solve the UODE
-#********************************
+function reset()
+    global rng = StableRNG(1234)
+    global θi = 0.01 * randn(rng, n_weights)
+    global iter = 0
+end
+
+reset()
+
 solve_UODE(θi, max_nb_protocols, p_system, tspans, σ0, σ12_all, callback, 
-            model_univ, loss_univ, model_weights, max_nb_iter)
+            model_univ, loss_univ, max_nb_iter)
+#************************************************************************
 
 # For some reason, the solution is zero after 3-4 iterations. SOMETHING FUNDAMENTALLY WRONG!
 #--------------------------------------------------------

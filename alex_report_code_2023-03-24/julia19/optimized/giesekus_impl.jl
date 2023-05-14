@@ -53,9 +53,10 @@ fct_ude = function (tspan, tsave, θ, p, σ0, protocol, model_univ, model_weight
 end
 
 #----------------------------------------------------------------
-function dudt_univ_opt!(dσ, σ, p, t, gradv, model_univ, model_weights)
+function dudt_univ_opt!(dσ, σ, p, t, gradv, model_univ)
     # the parameters are [NN parameters, ODE parameters)
     η0, τ = @view p[end-1:end]
+    model_weights = p[1:end-2]
     ∇v = SizedMatrix{3,3}([0.0 0.0 0.0; gradv[2, 1](t) 0.0 0.0; 0.0 0.0 0.0])
     D = (∇v .+ transpose(∇v))  # probably necessary to match original RUDE
     T1 = (η0 / τ) .* D
@@ -91,7 +92,14 @@ function tbnn_opt(σ, D, model_weights, model_univ, t)
     λ[8] = tr(T8) * 0.5
     λ[9] = tr(T6) * 0.5
 
+    #g = re(model_weights)(λ)  # Not sure about this approach
+    # g = model_univ(λ) #re(model_weights)(λ)
+    println("\n==> model_weights: ", model_weights[1:10])
     g = re(model_weights)(λ)
+    println("==> t=$t, λ[1]=$(λ[1]), λ[2]=$(λ[2]), λ[3]=$(λ[3]), λ[4]=$(λ[4]), λ[5]=$(λ[5]), λ[6]=$(λ[6]), λ[7]=$(λ[7]), λ[8]=$(λ[8]), λ[9]=$(λ[9])")
+    println("==> t=$t, g[1]=$(g[1]), g[2]=$(g[2]), g[3]=$(g[3]), g[4]=$(g[4]), g[5]=$(g[5]), g[6]=$(g[6]), g[7]=$(g[7]), g[8]=$(g[8]), g[9]=$(g[9])")
+    #println("\n, t=$t, λ[1]=$λ[1], λ[2]=$λ[2], λ[3]=$λ[3], λ[4]=$λ[4], λ[5]=$λ[5], λ[6]=$λ[6], λ[7]=$λ[7], λ[8]=$λ[8], λ[9]=$λ[9]") 
+    #println("\n, t=$t, g[1]=$g[1], g[2]=$g[2], g[3]=$g[3], g[4]=$g[4], g[5]=$g[5], g[6]=$g[6], g[7]=$g[7], g[8]=$g[8], g[9]=$g[9]")
 
     F = g[1] .* I + g[2] .* σ + g[3] .* D + g[4] .* T4 + g[5] .* T5 +
         g[6] .* T6 + g[7] .* T7 + g[8] .* T8 + g[9] .* T9
@@ -168,14 +176,14 @@ end
 # Helpers to solve the UODE 
 #*****************************************************************************************
 
-function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, model_univ, model_weights)
+function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, model_univ)
     # trajectories is an integer
-    dudt_protocol!(du, u, p, t) = dudt_univ_opt!(du, u, p, t, protocols[1], model_univ, model_weights)
+    dudt_protocol!(du, u, p, t) = dudt_univ_opt!(du, u, p, t, protocols[1], model_univ)
     prob = ODEProblem(dudt_protocol!, σ0, tspans[1], θ)
 
     # Remake the problem for different protocols
     function prob_func(prob, i, repeat)
-        dudt_remade!(du, u, p, t) = dudt_univ_opt!(du, u, p, t, protocols[i], model_univ, model_weights)
+        dudt_remade!(du, u, p, t) = dudt_univ_opt!(du, u, p, t, protocols[i], model_univ)
         remake(prob, f=dudt_remade!, tspan=tspans[i])
     end
 
@@ -184,13 +192,13 @@ function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, mode
         sensealg=InterpolatingAdjoint(autojacvec=ReverseDiffVJP(true)), saveat=0.2)  ### ERROR
 end
 
-function loss_univ(θ, protocols, tspans, σ0, σ12_all, nb_trajectories, model_univ, model_weights)
+function loss_univ(θ, protocols, tspans, σ0, σ12_all, nb_trajectories, model_univ)
     # length(protocols) = 1, then 2, ...
     # println("loss_univ, length protocols: ", length(protocols))
     # nb_trajectories is either 1, or 2, or 3, ..., length(nb_trajectories) = 1
     # println("loss_univ, length nb_trajetories: $(length(nb_trajectories)), $nb_trajectories") # always 1 trajectory
     loss = 0
-    results = ensemble_solve(θ, EnsembleThreads(), protocols, tspans, σ0, nb_trajectories, model_univ, model_weights)
+    results = ensemble_solve(θ, EnsembleThreads(), protocols, tspans, σ0, nb_trajectories, model_univ)
     for k = range(1, nb_trajectories, step=1)
         σ12_pred = results[k][4, :]
         σ12_data = σ12_all[k]
@@ -200,24 +208,26 @@ function loss_univ(θ, protocols, tspans, σ0, σ12_all, nb_trajectories, model_
     return loss
 end
 
-function solve_UODE(θi, max_nb_protocols, p_system, tspans, σ0, σ12_all, callback, model_univ, loss_univ, model_weights, max_nb_iter)
+function solve_UODE(θi, max_nb_protocols, p_system, tspans, σ0, σ12_all, callback, model_univ, loss_univ, max_nb_iter)
     # Continutation training loop
     adtype = Optimization.AutoZygote()
-    k = 1
     # iter = 0
-    print("p_system: ", p_system)
+    println("p_system: ", p_system)
+    println("initial θi: ", θi[1:10])
     results_univ = []
     for k = range(1, max_nb_protocols)
         println("k= ", k)
-        loss_fn(θ) = loss_univ([θ; p_system], protocols[1:k], tspans[1:k], σ0, σ12_all, k, model_univ, model_weights)
+        loss_fn(θ) = loss_univ([θ; p_system], protocols[1:k], tspans[1:k], σ0, σ12_all, k, model_univ)
         cb_fun(θ, l) = callback(θ, l, protocols[1:k], tspans[1:k], σ0, σ12_all, k)
         optf = Optimization.OptimizationFunction((x, p) -> loss_fn(x), adtype)
         optprob = Optimization.OptimizationProblem(optf, θi)
-        result_univ = Optimization.solve(optprob, Optimisers.AMSGrad(), callback=cb_fun, maxiters=max_nb_iter)
+        # global should not be needed on the next line
+        global result_univ = Optimization.solve(optprob, Optimisers.AMSGrad(), callback=cb_fun, maxiters=max_nb_iter)
+        global θi = result_univ.u 
         push!(results_univ, result_univ)
-        @show result_univ.u
+        @show result_univ.u[1:10]
         @show length(result_univ.u)
-        θi = result_univ.u
+        # is global required? 
     end
     return results_univ
 end

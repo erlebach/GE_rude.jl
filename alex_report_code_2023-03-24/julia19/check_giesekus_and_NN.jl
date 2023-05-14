@@ -180,9 +180,9 @@ function tbnn(σ, γd, model_weights, t)
 
     # Run the integrity basis through a neural network
     model_inputs = [λ1; λ2; λ3; λ4; λ5; λ6; λ7; λ8; λ9]
-    println("enter tbnn, λ: ", model_inputs)
-    g1, g2, g3, g4, g5, g6, g7, g8, g9 = re(model_weights)(model_inputs)
-    println("exit tbnn: g= ", g1, g2, g3, g4, g5, g6, g7, g8, g9)
+    # # println("enter tbnn, λ: ", model_inputs)
+    # g1, g2, g3, g4, g5, g6, g7, g8, g9 = re(model_weights)(model_inputs)
+    # println("exit tbnn: g= ", g1, g2, g3, g4, g5, g6, g7, g8, g9)
 
     if VERBOSE
         file = open("Giesekus_lambda.txt", "a")

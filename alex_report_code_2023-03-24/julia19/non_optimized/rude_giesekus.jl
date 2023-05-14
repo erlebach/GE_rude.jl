@@ -6,10 +6,37 @@ using Zygote, Plots, LaTeXStrings, LinearAlgebra, OrdinaryDiffEq, DelimitedFiles
 using BSON: @save, @load
 using StableRNGs
 
+# =========== BEGIN PARAMETER INITIALIZATION =================
 VERBOSE::Bool = false
 const max_nb_protocols::Int32 = 1
-const max_nb_iter::Int32 = 2
+const max_nb_iter::Int32 = 20 
 start_at = 1 # Train from scratch
+
+# Iniitial conditions and time span
+tspan = (0.0, 0.0001)
+tsave = range(tspan[1], tspan[2], length=50)
+σ0 = [0.0f0, 0.0f0, 0.0f0, 0.0f0, 0.0f0, 0.0f0]
+ω = 1.0
+# =========== END PARAMETER INITIALIZATION ===================
+
+function mat3x3_to_vec6(D)
+d = zeros(6)
+d[1] = D[1,1]
+d[2] = D[2,2]
+d[3] = D[3,3]
+d[4] = D[1,2]
+d[5] = D[1,3]
+d[6] = D[2,3]
+return d
+end
+
+function vec6_to_mat3x3(v)
+D = SizedMatrix{3,3}(zeros(3,3))
+D[1,1] = v[1];   D[1,2] = v[4];   D[1,3] = v[5]
+D[2,1] = v[4];   D[2,2] = v[2];   D[2,3] = v[6]
+D[3,1] = v[5];   D[3,2] = v[6];   D[3,3] = v[3]
+return D
+end
 
 function write_files(files)
     # Open and close a file for writing. This should empty any 
@@ -155,7 +182,10 @@ function tbnn(σ, γd, model_weights, t)
 
     # Run the integrity basis through a neural network
     model_inputs = [λ1; λ2; λ3; λ4; λ5; λ6; λ7; λ8; λ9]
+    println("\n==> model_weights= ", model_weights[1:10])
     g1, g2, g3, g4, g5, g6, g7, g8, g9 = re(model_weights)(model_inputs)
+    println("==> t=$t, λ[1]=$λ1, λ[2]=$λ2, λ[3]=$λ3, λ[4]=$λ4, λ[5]=$λ5, λ[6]=$λ6, λ[7]=$λ7, λ[8]=$λ8, λ[9]=$λ9")
+    println("==> t=$t, g1=$g1, g2=$g2, g3=$g3, g4=$g4, g5=$g5, g6=$g6, g7=$g7, g8=$g8, g9=$g9")
 
     if VERBOSE
         file = open("Giesekus_lambda.txt", "a")
@@ -258,13 +288,7 @@ v31(t) = 0
 v32(t) = 0
 v33(t) = 0
 
-# Iniitial conditions and time span
-tspan = (0.0f0, 12.0f0)
-tsave = range(tspan[1], tspan[2], length=50)
-σ0 = [0.0f0, 0.0f0, 0.0f0, 0.0f0, 0.0f0, 0.0f0]
-
 # Build the protocols for different 'experiments'
-ω = 1.0f0
 v21_1(t) = 1 * cos(ω * t)
 v21_2(t) = 2 * cos(ω * t)
 v21_3(t) = 1 * cos(ω * t / 2)
@@ -299,7 +323,7 @@ for k = range(1, max_nb_protocols)
     solve_giesekus = solve(prob_giesekus, Rodas4(), saveat=0.2)
     σ12_data = solve_giesekus[4, :]
     println("solve_giesekus_protocols, solve_giesekus: ")
-    for k in 1:9
+    for k in 1:6
         println("$k ==> ", solve_giesekus[k,:])
     end
     println("t => ", solve_giesekus.t)
@@ -310,9 +334,23 @@ end
 #---------------------------------------------------------------
 
 # NN model for the nonlinear function F(σ,γ̇)
+#=
 model_univ = Flux.Chain(Flux.Dense(9, 8, tanh),
     # Flux.Dense(32, 32, tanh),
     Flux.Dense(8, 9))
+p_model, re = Flux.destructure(model_univ)
+=#
+
+function NeuralNetwork(; nb_in=1, nb_out=1, layer_size=8, nb_hid_layers=1)
+    # Note use of Any[] since the Dense layers are of different types
+    layers = Any[Flux.Dense(nb_in => layer_size, tanh)]
+    push!(layers, [Flux.Dense(layer_size => layer_size, tanh) for i in 1:nb_hid_layers-1]...)
+    push!(layers, Flux.Dense(layer_size => nb_out))
+    # |> f64 is necessary to have weights in Float64
+    return Chain(layers...) |> f64
+end
+
+model_univ = NeuralNetwork(; nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=0)
 p_model, re = Flux.destructure(model_univ)
 
 # The protocol at which we'll start continuation training
@@ -323,6 +361,7 @@ p_model, re = Flux.destructure(model_univ)
 if start_at > 1
     # Load the pre-trained model if not starting from scratch
     @load "tbnn.bson" θi
+    # Neural ODE layer will take care of appropriately setting up the model weights
     p_model = θi
     n_weights = length(θi)
 else
@@ -346,21 +385,72 @@ callback = function (θ, l, protocols, tspans, σ0, σ12_all, trajectories)
     return false
 end
 
+
+
+# ===================================================================
+# Check the solution with NN
+if false
+using StaticArrays
+function check_giesekus_NN()
+    rng = StableRNG(1234)
+    # σ11, σ22, σ33, σ12, σ13, σ23 = u
+    σ0 = u0 = rand(rng, 6)
+
+    model_univ = NeuralNetwork(; nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=0)
+    # println("===========")
+    # println(model_univ)
+    # println("===========")
+
+    p_model, re = Flux.destructure(model_univ)
+    rng = StableRNG(4321)
+    p_model = 0.01 .* (-1. .+ 2 .* rand(rng, size(p_model)[1]))  # zero weights in a single list
+    # p_model = zeros(size(p_model))  # zero weights in a single list
+    # println("p_model: ", p_model)
+
+    p_giesekus = [1., 1.]
+    p = [p_model; p_giesekus]
+    t = 3.
+    gradv = [t -> 0., t -> 0., t -> 0., t -> cos(t), t -> 0., t -> 0., t -> 0., t -> 0., t -> 0.]
+    du_opt_NN = similar(σ0, 6)
+    n_weights = length(p_model)
+    # @show p_model
+    dudt_univ!(du_opt_NN, u0, p, t, gradv)
+    println("\ncheck_giesekus_NN: \n", du_opt_NN)
+    println("vec6_to_mat3x3(du_opt_NN): "); display(vec6_to_mat3x3(du_opt_NN))
+    println("==================================================")
+    return du_opt_NN
+end
+    check_giesekus_NN()
+end
+
+# ===================================================================
+# Make the model weights random
+
+function reset()
+    global rng = StableRNG(1234)
+    global θi = 0.01 * randn(rng, n_weights)
+    global iter = 0
+end
+
+reset()
+
 # Continutation training loop
 adtype = Optimization.AutoZygote()
 # for k = range(start_at,length(protocols),step=1)
 println("p_system: ", p_system)
+println("initial θi: ", θi[1:10])
 for k = range(1, max_nb_protocols)
     println("==> k= $k")
     loss_fn(θ) = loss_univ([θ; p_system], protocols[1:k], tspans[1:k], σ0, σ12_all, k)
     cb_fun(θ, l) = callback(θ, l, protocols[1:k], tspans[1:k], σ0, σ12_all, k)
     optf = Optimization.OptimizationFunction((x, p) -> loss_fn(x), adtype)
     optprob = Optimization.OptimizationProblem(optf, θi)
-    result_univ = Optimization.solve(optprob, Optimisers.AMSGrad(), callback=cb_fun, maxiters=max_nb_iter)
+    global result_univ = Optimization.solve(optprob, Optimisers.AMSGrad(), callback=cb_fun, maxiters=max_nb_iter)
     global θi = result_univ.u
     @save "tbnn.bson" θi
     @save "tbnn_protocol$k.bson" θi
-    @show result_univ.u
+    @show result_univ.u[1:10]
+    @show length(result_univ.u)
 end
 
 #*****************************************************************
@@ -377,10 +467,10 @@ end
 θi = [θi; p_system]
 
 # Test the UDE on a new condition
-v21_1(t) = 2 * cos(3 * ω * t / 4)
-v21_2(t) = 2 * cos(3 * ω * t)
-v21_3(t) = 2 * cos((3 * ω * t) / 2)
-v21_4(t) = 1.5f0
+v21_1(t) = 2 * cos(3. * ω * t / 4)
+v21_2(t) = 2 * cos(3. * ω * t)
+v21_3(t) = 2 * cos((3. * ω * t) / 2)
+v21_4(t) = 1.5
 gradv_1 = [v11, v12, v13, v21_1, v22, v23, v31, v32, v33]
 gradv_2 = [v11, v12, v13, v21_2, v22, v23, v31, v32, v33]
 gradv_3 = [v11, v12, v13, v21_3, v22, v23, v31, v32, v33]
