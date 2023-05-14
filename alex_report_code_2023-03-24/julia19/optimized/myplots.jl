@@ -37,7 +37,7 @@ function plot_data!(k, plots, target_label, protocol_label, sols)
         # mss = 1.25  # Marker size
         plot!(pre.t, target_pre, c=:blue, ls=:dash, lw=3.0 * 0.5, title="$target_label, v21=$protocol_label", label="UDE-pre")
         plot!(post.t, target_post, c=:red, lw=1.5 * 0.5, label="UDE-post")
-        scatter!(base.t[1:2:end], target_base[1:2:end], m=:o, c=:black, ms=0.4, label="Giesekus")
+        scatter!(base.t[1:2:end], target_base[1:2:end], m=:o, c=:black, ms=1.0, label="Giesekus")
         # return return value of plot!
         plot!(base.t[1:2:end], target_base[1:2:end], lw=0.50 * 0.5, c=:black)
     end
@@ -176,6 +176,8 @@ function my_plot_solution(θ0, θi, protocols, labels, fcts)
         @show length(protocols)
         protocol_label = protocol_labels[k]
         sol_giesekus = fcts.base_model(k)
+        println("==> len θ0: ", length(θ0))
+        println("==> len θi: ", length(θi))
         sol_ude_pre = fcts.ude_model(k, θ0)
         sol_ude_post = fcts.ude_model(k, θi)
         sols = (base=sol_giesekus, pre=sol_ude_pre, post=sol_ude_post)

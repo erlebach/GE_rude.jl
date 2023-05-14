@@ -17,10 +17,11 @@ includet("myplots.jl")
 # ========== START PARAMETER SETUP =====================================
 # Set up Parameters
 VERBOSE::Bool = false 
-const max_nb_protocols::Int32 = 1
-const max_nb_iter::Int32 = 2   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
+const max_nb_protocols::Int32 = 8
+const max_nb_iter::Int32 = 100   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
 start_at = 1 # Train from scratch
 tspan = (0., .0001)
+tspan = (0., 12.)
 ω = 1.0
 
 n_protocol_train = 8
@@ -98,7 +99,7 @@ function check_giesekus_opt_NN()
     p_giesekus = [1., 1.]  # Must be a list
     t = 3.
     gradv = [t -> 0.  t -> 0.  t -> 0.; t -> cos(t)  t -> 0.  t -> 0.; t -> 0.  t -> 0.  t -> 0.]
-    println("1. gradv: ", [grad(t) for grad in gradv])
+    # println("1. gradv: ", [grad(t) for grad in gradv])
     du = similar(σ0, 3, 3)
 
     model_univ = NeuralNetwork(; nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=0)
@@ -110,13 +111,13 @@ function check_giesekus_opt_NN()
     # @show p_model
     p = [p_model; p_giesekus]
     model_weights = p_model
-    println("len p: ", p|>length)
+    # println("len p: ", p|>length)
                                              #           <<<  re  >>>>
     dudt_univ_opt!(du, σ0, p, t, gradv, model_univ, model_weights)
     # @show model_weights
-    println("du: ", du)
-    println("du symmetric? ", is_symmetric(du))
-    println("\ncheck_giesekus_opt_NN: ")
+    # println("du: ", du)
+    # println("du symmetric? ", is_symmetric(du))
+    # println("\ncheck_giesekus_opt_NN: ")
     display(du)
     println("==================================================")
     return du
@@ -161,7 +162,9 @@ labels = (target=target_labels, protocol=protocol_labels)
 
 # Function closures. The functions are defined in giesekus_impl.jl
 base_model(k) = fct_giesekus(tspans[k], tsaves[k], p_giesekus, σ0, protocols[k])
-ude_model(k, θ)  = fct_ude(tspans[k], tsaves[k], θ, p_giesekus, σ0, protocols[k], model_univ, model_weights)
+# Only first two parameters are required
+ude_model(k, θ)  = fct_ude(tspans[k], tsaves[k], θ, p_giesekus[1:2], σ0, protocols[k], model_univ)
+
 fcts = (base_model=base_model, ude_model=ude_model)
 
 # Plot the results

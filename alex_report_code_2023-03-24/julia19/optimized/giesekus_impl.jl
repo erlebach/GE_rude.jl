@@ -45,8 +45,9 @@ fct_giesekus = function (tspan, tsave, p, σ0, protocol)
     sol = solve(prob, Tsit5(), saveat=tsave)
 end
 
-fct_ude = function (tspan, tsave, θ, p, σ0, protocol, model_univ, model_weights)
-    dudt_ude!(du, u, p, t) = dudt_univ_opt!(du, u, p, t, protocol, model_univ, model_weights)
+fct_ude = function (tspan, tsave, θ, p, σ0, protocol, model_univ)
+    # println("fct_ude, len p: $(length(p)),  len θ: $(length(θ))")
+    dudt_ude!(du, u, p, t) = dudt_univ_opt!(du, u, p, t, protocol, model_univ)
     # Solve the UDE 
     prob_ude = ODEProblem(dudt_ude!, σ0, tspan, [θ; p])
     sol_ude = solve(prob_ude, Tsit5(), abstol=1e-7, reltol=1e-6, saveat=tsave)
@@ -57,6 +58,7 @@ function dudt_univ_opt!(dσ, σ, p, t, gradv, model_univ)
     # the parameters are [NN parameters, ODE parameters)
     η0, τ = @view p[end-1:end]
     model_weights = p[1:end-2]
+    # println("dudt_univ_opt!: length p: $(length(p))")
     ∇v = SizedMatrix{3,3}([0.0 0.0 0.0; gradv[2, 1](t) 0.0 0.0; 0.0 0.0 0.0])
     D = (∇v .+ transpose(∇v))  # probably necessary to match original RUDE
     T1 = (η0 / τ) .* D
@@ -92,14 +94,12 @@ function tbnn_opt(σ, D, model_weights, model_univ, t)
     λ[8] = tr(T8) * 0.5
     λ[9] = tr(T6) * 0.5
 
-    #g = re(model_weights)(λ)  # Not sure about this approach
+    # g = re(model_weights)(λ)  # Not sure about this approach
     # g = model_univ(λ) #re(model_weights)(λ)
-    println("\n==> model_weights: ", model_weights[1:10])
-    g = re(model_weights)(λ)
-    println("==> t=$t, λ[1]=$(λ[1]), λ[2]=$(λ[2]), λ[3]=$(λ[3]), λ[4]=$(λ[4]), λ[5]=$(λ[5]), λ[6]=$(λ[6]), λ[7]=$(λ[7]), λ[8]=$(λ[8]), λ[9]=$(λ[9])")
-    println("==> t=$t, g[1]=$(g[1]), g[2]=$(g[2]), g[3]=$(g[3]), g[4]=$(g[4]), g[5]=$(g[5]), g[6]=$(g[6]), g[7]=$(g[7]), g[8]=$(g[8]), g[9]=$(g[9])")
-    #println("\n, t=$t, λ[1]=$λ[1], λ[2]=$λ[2], λ[3]=$λ[3], λ[4]=$λ[4], λ[5]=$λ[5], λ[6]=$λ[6], λ[7]=$λ[7], λ[8]=$λ[8], λ[9]=$λ[9]") 
-    #println("\n, t=$t, g[1]=$g[1], g[2]=$g[2], g[3]=$g[3], g[4]=$g[4], g[5]=$g[5], g[6]=$g[6], g[7]=$g[7], g[8]=$g[8], g[9]=$g[9]")
+    #println("\n==> model_weights: ", model_weights[1:10])
+    g = re(model_weights)(λ)   # WHY USE re? 
+    #println("==> t=$t, λ[1]=$(λ[1]), λ[2]=$(λ[2]), λ[3]=$(λ[3]), λ[4]=$(λ[4]), λ[5]=$(λ[5]), λ[6]=$(λ[6]), λ[7]=$(λ[7]), λ[8]=$(λ[8]), λ[9]=$(λ[9])")
+    #println("==> t=$t, g[1]=$(g[1]), g[2]=$(g[2]), g[3]=$(g[3]), g[4]=$(g[4]), g[5]=$(g[5]), g[6]=$(g[6]), g[7]=$(g[7]), g[8]=$(g[8]), g[9]=$(g[9])")
 
     F = g[1] .* I + g[2] .* σ + g[3] .* D + g[4] .* T4 + g[5] .* T5 +
         g[6] .* T6 + g[7] .* T7 + g[8] .* T8 + g[9] .* T9
@@ -115,14 +115,14 @@ function setup_protocols(n_protocol, v21_fct, tspan)
     =#
     # Any is necessary since I will be inserting a function of different type 
     # in one or more of the array elements
-    println("inside setup_protocols")
+    # println("inside setup_protocols")
     vij_fct = SizedMatrix{3,3,Any}(t -> 0.0 for i in 1:3, j in 1:3)
 
     # Build the protocols for different 'experiments'
     protocols = Vector{Any}()  # each element is 3x3 matrix of functions of shear ∂ij(v) (w/ or w/o time-derivative?)
 
-    println("====> ")
-    @show n_protocol
+    # println("====> ")
+    # @show n_protocol
     for i in 1:n_protocol
         push!(protocols, copy(vij_fct))
         protocols[i][2, 1] = v21_fct[i]
@@ -143,20 +143,20 @@ function solve_giesekus_protocols(protocols, tspans, p, σ0, max_nb_protocols; d
     σ12_all = Any[]
     t_all = Any[]
     for k = range(1, max_nb_protocols)
-        println("giesekus solve, k= ", k)
+        # println("giesekus solve, k= ", k)
         dudt!(du, u, p, t) = dudt_sys(du, u, p, t, protocols[k])  # the argument beyond t depends on the model
         prob_giesekus = ODEProblem{true,SciMLBase.FullSpecialize}(dudt!, σ0, tspans[k], p)
         # solve_giesekus = solve(prob_giesekus, Rodas4(), saveat=0.2) 
         # Stack error with Rodas4 and Tsit5
         solve_giesekus = solve(prob_giesekus, Tsit5(), saveat=0.2)
-        println("solve_giesekus_protocols, solve_giesekus: ")
-        for k in 1:9
-            println("$k ==> ", solve_giesekus[k,:])
-        end
-        println("t => ", solve_giesekus.t)
+        # println("solve_giesekus_protocols, solve_giesekus: ")
+        # for k in 1:9
+            # println("$k ==> ", solve_giesekus[k,:])
+        # end
+        # println("t => ", solve_giesekus.t)
 
         σ12_data = solve_giesekus[4, :]
-        println("solve_giesekus_protocols, σ12_data: \n", σ12_data)
+        # println("solve_giesekus_protocols, σ12_data: \n", σ12_data)
         push!(t_all, solve_giesekus.t)
         push!(σ12_all, σ12_data)
     end
@@ -212,8 +212,8 @@ function solve_UODE(θi, max_nb_protocols, p_system, tspans, σ0, σ12_all, call
     # Continutation training loop
     adtype = Optimization.AutoZygote()
     # iter = 0
-    println("p_system: ", p_system)
-    println("initial θi: ", θi[1:10])
+    # # println("p_system: ", p_system)
+    # println("initial θi: ", θi[1:10])
     results_univ = []
     for k = range(1, max_nb_protocols)
         println("k= ", k)

@@ -320,7 +320,7 @@ t_all = Any[]
 for k = range(1, max_nb_protocols)
     dudt!(du, u, p, t) = dudt_giesekus!(du, u, p, t, protocols[k])
     prob_giesekus = ODEProblem(dudt!, σ0, tspans[k], p_giesekus)
-    solve_giesekus = solve(prob_giesekus, Rodas4(), saveat=0.2)
+    solve_giesekus = solve(prob_giesekus, Tsit5(), saveat=0.2)
     σ12_data = solve_giesekus[4, :]
     println("solve_giesekus_protocols, solve_giesekus: ")
     for k in 1:6
