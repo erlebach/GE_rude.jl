@@ -14,17 +14,25 @@ includet("giesekus_impl.jl")
 # Plotting and processing of the solution
 includet("myplots.jl")
 
+includet("run_code.jl")
+
+
 # ========== START PARAMETER SETUP =====================================
 # Set up Parameters
 VERBOSE::Bool = false 
-const max_nb_protocols::Int32 = 8
-const max_nb_iter::Int32 = 100   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
-start_at = 1 # Train from scratch
-tspan = (0., .0001)
-tspan = (0., 12.)
-ω = 1.0
+# Use constants for global variables with declared types for efficiency. Might not be required.
+const max_nb_protocols::Int64 = 8
+const max_nb_iter::Int64 = 200   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
+const start_at::Int64 = 1 # Train from scratch
+const n_protocol_train::Int64 = 8   # Must be Int64 to specify the index in SizedArray
+const tspan = (0., 12.)
+const ω::Float64 = 1.0
 
-n_protocol_train = 8
+#######################################333
+# Run_code still seems to work. 
+#@time run_code(max_nb_protocols=max_nb_protocols, max_nb_iter=max_nb_iter)
+#######################################333
+
 ampl =  SizedVector{n_protocol_train}([1., 2., 1., 2., 1., 2., 1., 2.])
 freq =  SizedVector{n_protocol_train}([1., 1., 0.5, 0.5, 2., 2., 1/3., 1/3.])
 v21_fct = Any[t -> ampl[i] * cos(freq[i]*ω*t) for i in range(1, n_protocol_train, step=1)]
@@ -41,10 +49,32 @@ protocols, tspans, tsaves = setup_protocols(n_protocol_train, v21_fct, tspan)
 η0, τ, α = [1, 1, 0.8]
 p_giesekus = [η0, τ, α]
 
+
 #********************************
 # Solve base model with no NN
 #********************************
- t_all, σ12_all = solve_giesekus_protocols(protocols, tspans, p_giesekus, σ0, max_nb_protocols);
+# σ_all: Vector[nprotocols] of 3x3xnt matrices
+# σ12_all: Vector[nprotocols] of Vector[nt] 
+# t_all: Vector[nprotocols] of Vector[nt]
+ t_all, σ_all, σ12_all = solve_giesekus_protocols(protocols, tspans, p_giesekus, σ0, max_nb_protocols);
+println("length(σ_all): $(length(σ_all))")
+println("length(σ12_all): $(length(σ12_all))")
+
+# function plot_sigmas(σ_all)
+#     plots = []
+#     for p in 1:8  # protocols
+#         plot(t_all[1], σ_all[p][1,1,:], label="σ11")
+#         plot!(t_all[1], σ_all[p][2,2,:], label="σ22")
+#         plt = plot!(t_all[1], σ_all[p][2,1,:], label="σ21")
+#         title!("Protocol $p")
+#         push!(plots, plt)
+#     end
+#     # Set the plot aspect ratio
+#     plot(plots..., layout=(2,4), size=(1000,400), plot_title="σ for all protocols")
+# end
+plot_sigmas(σ_all, title="Solve_giesekus_protocols")
+
+# I would like to plot the solution after each protocol
 
  #---------------------------------------------------------
 #  # Execute the Giesekus code with random I.C. and compare to my new code
@@ -76,68 +106,31 @@ p_system = p_giesekus[1:2]
 
 # Callback function to print the iteration number and loss
 iter = 0
-callback = function (θ, l, protocols, tspans, σ0, σ12_all, trajectories)
+callback = function (θ, l, protocols, tspans, σ0, σ_all, trajectories)
   global iter
   iter += 1
   println("===> Loss($iter): $(round(l, digits=4))")
+#   if iter % 10 == 0
+    # plot_sigmas(σ_all)
+#   end
   return false
 end
 
 # ==============================================================
-if false
-# Make the model weights random for debugging
-function check_giesekus_opt_NN()
-    global re
-    rng = StableRNG(1234)
-    u0 = rand(rng, 6)
-    σ0 = rand(rng, 3, 3)
-    σ0[1,1], σ0[2,2], σ0[3,3], σ0[1,2], σ0[1,3], σ0[2,3] = [u0[i] for i in 1:6]
-    σ0[2,1] = σ0[1,2]
-    σ0[3,1] = σ0[1,3]
-    σ0[3,2] = σ0[2,3]
-
-    p_giesekus = [1., 1.]  # Must be a list
-    t = 3.
-    gradv = [t -> 0.  t -> 0.  t -> 0.; t -> cos(t)  t -> 0.  t -> 0.; t -> 0.  t -> 0.  t -> 0.]
-    # println("1. gradv: ", [grad(t) for grad in gradv])
-    du = similar(σ0, 3, 3)
-
-    model_univ = NeuralNetwork(; nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=0)
-    p_model, re = Flux.destructure(model_univ)
-    # p_model = zeros(size(p_model))  # zero weights in a single list
-    rng = StableRNG(4321)
-    p_model = 0.01 .* (-1. .+ 2 .* rand(rng, size(p_model)[1]))  # zero weights in a single list
-
-    # @show p_model
-    p = [p_model; p_giesekus]
-    model_weights = p_model
-    # println("len p: ", p|>length)
-                                             #           <<<  re  >>>>
-    dudt_univ_opt!(du, σ0, p, t, gradv, model_univ, model_weights)
-    # @show model_weights
-    # println("du: ", du)
-    # println("du symmetric? ", is_symmetric(du))
-    # println("\ncheck_giesekus_opt_NN: ")
-    display(du)
-    println("==================================================")
-    return du
-end
-
-check_giesekus_opt_NN()
-end
+# check_giesekus_opt_NN()
 # ==============================================================
 
 #************************************************************************
 # Solve the UODE
 function reset()
-    global rng = StableRNG(1234)
+    rng = StableRNG(1234)
     global θi = 0.01 * randn(rng, n_weights)
     global iter = 0
 end
 
 reset()
 
-solve_UODE(θi, max_nb_protocols, p_system, tspans, σ0, σ12_all, callback, 
+@time results_u, θi = solve_UODE(θi, max_nb_protocols, p_system, tspans, σ0, σ12_all, callback, 
             model_univ, loss_univ, max_nb_iter)
 #************************************************************************
 
@@ -170,4 +163,4 @@ fcts = (base_model=base_model, ude_model=ude_model)
 # Plot the results
 plots, halt = my_plot_solution(θ0, θi, protocols, labels, fcts)
 
-new_plot = plot(plots..., layout=(2,2), size=(800,600))
+# new_plot = plot(plots..., layout=(2,2), size=(800,600))

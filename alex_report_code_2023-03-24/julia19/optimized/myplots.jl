@@ -172,7 +172,7 @@ function my_plot_solution(θ0, θi, protocols, labels, fcts)
     # No change with respect to target
     for k = range(1, length(protocols), step=1)  # ORIGINAL
         println(protocol_labels)
-        println("==>, k= $k ==> length(protocols): $(length(protocols))")
+        println("==> my_plot_solution, k= $k ==> length(protocols): $(length(protocols))")
         @show length(protocols)
         protocol_label = protocol_labels[k]
         sol_giesekus = fcts.base_model(k)
