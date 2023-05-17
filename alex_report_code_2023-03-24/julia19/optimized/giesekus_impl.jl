@@ -31,7 +31,6 @@ function dudt_giesekus_opt!(du, σ, p, t, gradv)
     D = (∇v .+ transpose(∇v))  # necessary to produce same result as original RUDE
     T1 = (η0 / τ) .* D
     T2 = (transpose(∇v) * σ) + (σ * ∇v)
-#   coef = α / (τ * η0)
     coef = α / η0
     F = coef * (σ * σ)
     du .= -σ / τ .+ T1 .+ T2 .- F  # 9 equations (static matrix)
@@ -175,8 +174,8 @@ function ensemble_solve(θ, ensemble, protocols, tspans, σ0, trajectories, mode
     function prob_func(prob, i, repeat)
         dudt_remade!(du, u, p, t) = dudt_univ_opt!(du, u, p, t, protocols[i], model_univ)
         # Is there any value in changing σ0?
-        remake(prob, f=dudt_remade!, tspan=tspans[i])  # 2023-05-15: added p=θ
-        # remake(prob, f=dudt_remade!, tspan=tspans[i], p=θ)  # 2023-05-15: added p=θ (system now crashes)
+        #remake(prob, f=dudt_remade!, tspan=tspans[i])  
+        remake(prob, f=dudt_remade!, tspan=tspans[i], p=θ)  # 2023-05-15: added p=θ (system now crashes)
     end
 
     ensemble_prob = EnsembleProblem(prob, prob_func=prob_func)
@@ -195,32 +194,27 @@ function loss_univ(θ, protocols, tspans, σ0, σ12_all, nb_trajectories, model_
     for k = range(1, nb_trajectories, step=1)
         σ12_pred = results[k][1, 2, :]  
         σ12_data = σ12_all[k]
-        #println("loss, σ12_data: ", size(σ12_data)) # 61
         loss += sum(abs2, σ12_pred - σ12_data)
     end
     loss += 0.01 * norm(θ, 1)
     return loss
 end
 
-function solve_UODE(θi, max_nb_protocols, p_system, tspans, σ0, σ12_all, callback, model_univ, loss_univ, max_nb_iter)
+# 2023-05-17_14:23 : add protocols as 2nd argument
+function solve_UODE(θi, protocols, max_nb_protocols, p_system, tspans, σ0, σ12_all, callback, model_univ, loss_univ, max_nb_iter)
     # Continutation training loop
     adtype = Optimization.AutoZygote()
     results_univ = []
     for k = range(1, max_nb_protocols)
-        #println("+++ k= ", k)
         loss_fn(θ) = loss_univ([θ; p_system], protocols[1:k], tspans[1:k], σ0, σ12_all, k, model_univ)
         cb_fun(θ, l) = callback(θ, l, protocols[1:k], tspans[1:k], σ0, σ12_all, k)
         optf = Optimization.OptimizationFunction((x, p) -> loss_fn(x), adtype)
         optprob = Optimization.OptimizationProblem(optf, θi)
-        # global should not be needed on the next line
-        # global result_univ = Optimization.solve(optprob, Optimisers.AMSGrad(), callback=cb_fun, maxiters=max_nb_iter)
-        #println("solve_UODE: max_nb_iter: ", max_nb_iter, ",  k= ", k)
+        # do not use "global" if it can be avoided!
         result_univ = Optimization.solve(optprob, Optimisers.AMSGrad(), callback=cb_fun, maxiters=max_nb_iter)
-        # global θi = result_univ.u   # works
         θi = result_univ.u 
+		# I should save θi
         push!(results_univ, result_univ)
-        @show result_univ.u[1:10]
-        @show length(result_univ.u)
         # is global required? 
     end
     return results_univ, θi
@@ -244,7 +238,6 @@ function plot_sigmas(σ_all; title)
     if n_proto == 8
         plot(plots..., layout=(2,4), size=(1000,400), plot_title="σ for all protocols")
     else
-        #println("size: $(size(plots)), n_proto: $n_proto")
         plot(plots..., layout=(n_proto,1), plot_title="$title, σ for all protocols")
     end
 end
@@ -263,25 +256,17 @@ function check_giesekus_opt_NN()
     p_giesekus = [1., 1.]  # Must be a list
     t = 3.
     gradv = [t -> 0.  t -> 0.  t -> 0.; t -> cos(t)  t -> 0.  t -> 0.; t -> 0.  t -> 0.  t -> 0.]
-    # println("1. gradv: ", [grad(t) for grad in gradv])
     du = similar(σ0, 3, 3)
 
     model_univ = NeuralNetwork(; nb_in=9, nb_out=9, layer_size=8, nb_hid_layers=0)
     p_model, re = Flux.destructure(model_univ)
-    # p_model = zeros(size(p_model))  # zero weights in a single list
     rng = StableRNG(4321)
     p_model = 0.01 .* (-1. .+ 2 .* rand(rng, size(p_model)[1]))  # zero weights in a single list
 
-    # @show p_model
     p = [p_model; p_giesekus]
     model_weights = p_model
-    # println("len p: ", p|>length)
                                              #           <<<  re  >>>>
     dudt_univ_opt!(du, σ0, p, t, gradv, model_univ, model_weights)
-    # @show model_weights
-    # println("du: ", du)
-    # println("du symmetric? ", is_symmetric(du))
-    # println("\ncheck_giesekus_opt_NN: ")
     display(du)
     println("==================================================")
     return du
