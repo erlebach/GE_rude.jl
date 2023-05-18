@@ -103,7 +103,7 @@ end
 
 # ====================
 
-function setup_protocols(n_protocol, v21_fct, tspan)
+function setup_protocols(v21_fct, tspan)
     #function setup_protocols(ω) 
     #= 
     Define the simple shear deformation protocols. 
@@ -111,6 +111,7 @@ function setup_protocols(n_protocol, v21_fct, tspan)
     =#
     # Any is necessary since I will be inserting a function of different type 
     # in one or more of the array elements
+    n_protocol = length(v21_fct)
     vij_fct = SizedMatrix{3,3,Any}(t -> 0.0 for i in 1:3, j in 1:3)
 
     # Build the protocols for different 'experiments'

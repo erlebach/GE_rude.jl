@@ -1,7 +1,7 @@
 
 # using Colors
 
-function plot_data!(k, plots, target_label, protocol_label, sols)
+function plot_data!(k, plots, target_label, protocol_label, sols, named_params)
     #For each protocol (target), we compute σ12, N1, and N2 from the UDE and Giesekus solutions
     Plots.default(
         # fontfamily = :Helvetica,
@@ -59,7 +59,13 @@ function plot_data!(k, plots, target_label, protocol_label, sols)
         println("ηE not implemented")
     end
     halt = false  # not used
-    plot(plots..., plot_title="(Protocols, Targets) for v21 components)", layout=(4, 4))
+    params = ", "
+    ks = keys(named_params)
+    for (i,v) in enumerate(named_params)
+        params *= string(ks[i])
+        params *= "=$v, "
+    end
+    plot(plots..., plot_title="(Protocols, Targets)"*params, plot_titlefontsize=12, layout=(4, 4))
     savefig("all_plots.pdf")
     return plots, halt
 end
@@ -155,10 +161,9 @@ function plot_solution(θ0, θi, p_system, σ0, p_giesekus; dct)
 end
 
 #----------------------------------------------------------------------
-
 # Implementation without dictionary. The function should be self contained
 #function my_plot_solution(θ0, θi, p_system, σ0, p_giesekus; dct)
-function my_plot_solution(θ0, θi, protocols, labels, fcts)
+function my_plot_solution(θ0, θi, protocols, labels, fcts, named_params)
     # Define the simple shear deformation protocol
     # Parameters of the linear response (η0,τ)
     p_system = p_giesekus
@@ -173,17 +178,17 @@ function my_plot_solution(θ0, θi, protocols, labels, fcts)
     for k = range(1, length(protocols), step=1)  # ORIGINAL
         println(protocol_labels)
         println("==> my_plot_solution, k= $k ==> length(protocols): $(length(protocols))")
-        @show length(protocols)
+        # @show length(protocols)
         protocol_label = protocol_labels[k]
         sol_giesekus = fcts.base_model(k)
-        println("==> len θ0: ", length(θ0))
-        println("==> len θi: ", length(θi))
+        # println("==> len θ0: ", length(θ0))
+        # println("==> len θi: ", length(θi))
         sol_ude_pre = fcts.ude_model(k, θ0)
         sol_ude_post = fcts.ude_model(k, θi)
         sols = (base=sol_giesekus, pre=sol_ude_pre, post=sol_ude_post)
 
         for target_label in target_labels
-            plots, halt = plot_data!(k, plots, target_label, protocol_label, sols)
+            plots, halt = plot_data!(k, plots, target_label, protocol_label, sols, named_params)
         end
     end
 

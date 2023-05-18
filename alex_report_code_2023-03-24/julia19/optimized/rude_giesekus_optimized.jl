@@ -8,39 +8,52 @@ using StableRNGs
 
 # substitute giesekus_impl by PTT_impl to change the base equations
 # Implementations of the needed functions. 
-# Use includet with Revise
+# Use includet for use with Revise
 includet("giesekus_impl.jl")
-
-# Plotting and processing of the solution
-includet("myplots.jl")
-
 includet("run_code.jl")
+
+# Plotting and post-processing of the training and prediction data
+includet("myplots.jl")
 
 # ========== START PARAMETER SETUP =====================================
 # Set up Parameters
 VERBOSE::Bool = false 
 # Use constants for global variables with declared types for efficiency. Might not be required.
-const max_nb_protocols::Int64 = 8
-const max_nb_iter::Int64 = 5   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
+const max_nb_protocols::Int64 = 4
+const max_nb_iter::Int64 = 20   # 2023-05-10_18:26, why am I not getting 100 iterations per protocol?
 const start_at::Int64 = 1 # Train from scratch
 const n_protocols_train::Int64 = 8   # Must be Int64 to specify the index in SizedArray
 const tspan = (0., 12.)
+
+# Training parameters
 const ω::Float64 = 1.0
+const γ::Float64 = 1.0
+# Prediction parameters
+const ω_pred::Float64 = 5.
+const γ_pred::Float64 = 2.
 
-#######################################333
-# Run_code still seems to work. 
-#@time run_code(max_nb_protocols=max_nb_protocols, max_nb_iter=max_nb_iter)
-#######################################333
+function train_protocols(; ω=1., γ=1.)
+    ampl =  SizedVector{n_protocols_train}([1., 2., 1., 2., 1., 2., 1., 2.])
+    freq =  SizedVector{n_protocols_train}([1., 1., 0.5, 0.5, 2., 2., 1/3., 1/3.])
+    v21_fct = Any[t -> ampl[i] * cos(freq[i]*ω*t) for i in range(1, n_protocols_train, step=1)]
+    labels = ["$(ampl[i]) cos($(freq[i])*ω*t)" for i in range(1, n_protocols_train, step=1)]
+    return v21_fct, labels
+end
 
-ampl =  SizedVector{n_protocols_train}([1., 2., 1., 2., 1., 2., 1., 2.])
-freq =  SizedVector{n_protocols_train}([1., 1., 0.5, 0.5, 2., 2., 1/3., 1/3.])
-v21_fct = Any[t -> ampl[i] * cos(freq[i]*ω*t) for i in range(1, n_protocols_train, step=1)]
+function test_protocols(; ω=1., γ=1.)
+    v21_1(t) = γ*cos(3*ω*t/4)
+    v21_2(t) = γ*cos(3*ω*t)
+    v21_3(t) = γ*cos((3*ω*t)/2)
+    v21_4(t) = γ
+    labels = ["γ cos(ωt/4)", "γ acos(ωt)", "γ cos((ωt)", "γ"]
+    return Any[v21_1, v21_2, v21_3, v21_4], labels
+end
 # ========== END PARAMETER SETUP =====================================
 
-# Set up the protocols
-protocols_train, tspans, tsaves = setup_protocols(n_protocols_train, v21_fct, tspan) 
+# Set up the training protocols
+v21_fct, train_target_labels = train_protocols(; ω=ω, γ=γ);
+protocols_train, tspans, tsaves = setup_protocols(v21_fct, tspan); 
 
-# σ0 = SizedMatrix{3,3}([0f0 0f0 0f0; 0f0 0f0 0f0; 0f0 0f0 0f0])
 σ0 = SizedMatrix{3,3}([0. 0. 0.; 0. 0. 0.; 0. 0. 0.])
 
 # Parameters for the Giesekus model
@@ -118,24 +131,20 @@ reset()
 # Prediction using trained weights
 # We use protocols  different than those used for training
 #*************************************************
-v21_1(t) = 2*cos(3*ω*t/4)
-v21_2(t) = 2*cos(3*ω*t)
-v21_3(t) = 2*cos((3*ω*t)/2)
-v21_4(t) = 1.5
-v21_fct = Any[v21_1, v21_2, v21_3, v21_4]
-n_protocols_pred = 4
-protocols_pred, tspans, tsaves = setup_protocols(n_protocols_pred, v21_fct, tspan) 
+
+v21_fct, protocol_labels = test_protocols(; ω=ω_pred, γ=γ_pred)
 target_labels = ["σ12a","N1","N2","σ12b"]
-# Should be protocol_titles
-protocol_labels= ["2cos(3ωt/4)", "2cos(ωt)", "2cos(ωt)", "1.5"]
+protocols_pred, tspans, tsaves = setup_protocols(v21_fct, tspan) 
 labels = (target=target_labels, protocol=protocol_labels)
 
 # Function closures. The functions are defined in giesekus_impl.jl
-base_model(k) = fct_giesekus(tspans[k], tsaves[k], p_giesekus, σ0, protocols_pred[k])
+tsave = 0.:0.05:12.
+base_model(k) = fct_giesekus(tspans[k], tsave, p_giesekus, σ0, protocols_pred[k])
 # Only first two parameters are required
-ude_model(k, θ)  = fct_ude(tspans[k], tsaves[k], θ, p_giesekus[1:2], σ0, protocols_pred[k], model_univ)
+ude_model(k, θ)  = fct_ude(tspans[k], tsave, θ, p_giesekus[1:2], σ0, protocols_pred[k], model_univ)
 
 fcts = (base_model=base_model, ude_model=ude_model)
 
 # Plot the results
-plots, halt = my_plot_solution(θ0, θi, protocols_pred, labels, fcts)
+named_params = (γ=γ_pred, ω=ω_pred)
+plots, halt = my_plot_solution(θ0, θi, protocols_pred, labels, fcts, named_params)
